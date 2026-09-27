@@ -158,7 +158,7 @@ fi
 PATCH_SHA="$(sha256sum "$PATCH_FILE" | awk '{print $1}')"
 CONFIG_SHA="$(sha256sum "$CONFIG_FILE" | awk '{print $1}')"
 UPSTREAM_SHA="$(awk '{print $1}' "$UPSTREAM_SHA_FILE")"
-GIT_SHA="$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || printf 'not-a-git-checkout')"
+GIT_SHA="${GITHUB_SHA:-$(git -C "$REPO_ROOT" rev-parse HEAD 2>/dev/null || printf 'not-a-git-checkout')}"
 COMPILER_VERSION="$(arm-linux-gnueabi-gcc --version | head -n 1)"
 BUILD_TIME_UTC="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
 
