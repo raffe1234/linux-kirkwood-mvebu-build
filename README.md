@@ -1,83 +1,105 @@
 # linux-kirkwood-mvebu-build
 
-Personal learning and reproducibility project for building custom Linux kernels for older Kirkwood and, later, MVEBU devices.
+Personal learning and reproducibility project for building custom Linux kernels for older Kirkwood and MVEBU devices.
 
 The project is based on:
 
 - vanilla Linux source from kernel.org
 - bodhi's published Kirkwood/MVEBU patch and config files from the Doozan forum
-- a Debian 13 amd64 cross-build environment
+- Debian 13 amd64 cross-build environments
+- reproducible reference checks against bodhi's packages
 
 This is **not** an official Doozan/bodhi project or release channel. Custom builds use their own `CONFIG_LOCALVERSION` suffix and their own Debian package identity.
 
-## Current scope
+## Verified targets
 
-Phase 1 intentionally supports only the locally verified target:
+Linux 7.1.9 has been successfully built through GitHub Actions for both platforms.
 
-- **Kirkwood**
-- Linux **7.1.9**
-- Debian **armel**
-- cross compiler `arm-linux-gnueabi-`
+| Platform | Debian arch | Cross compiler | DTBs | Reference DTB |
+|---|---|---|---:|---|
+| Kirkwood | armel | `arm-linux-gnueabi-` | 107 | `kirkwood-n1t1.dtb` |
+| MVEBU | armhf | `arm-linux-gnueabihf-` | 82 | `armada-380-zyxel-nas326.dtb` |
 
-MVEBU is documented as the next phase, but is not automated until its DTB/package layout has been verified locally against bodhi's 7.1.9 package.
-
-## Required reference files
-
-The repository scaffold does **not** include bodhi's patch or config because they were not part of the project handover archive supplied when this repo was generated.
-
-Before the first build, add these two files from your saved bodhi archive:
-
-```text
-configs/kirkwood/config-7.1.9-kirkwood-tld-1
-patches/kirkwood/linux-7.1.9-kirkwood-tld-1.patch
-```
-
-Do not rename or modify the source copies. The build script copies the config to the temporary build tree and changes `CONFIG_LOCALVERSION` there.
-
-## GitHub Actions setup
-
-Create two repository variables under **Settings → Secrets and variables → Actions → Variables**:
-
-- `DEB_FULLNAME` — your own package maintainer name
-- `DEB_EMAIL` — your own chosen package maintainer email
-
-Do not use bodhi's name or email.
-
-Then run **Build Kirkwood 7.1.9** manually from the Actions tab. The default local revision is `raffe-1`, which gives a kernel release like:
+Verified custom releases:
 
 ```text
 7.1.9-kirkwood-tld-1-raffe-1
+7.1.9-mvebu-tld-1-raffe-1
 ```
 
-The workflow uploads the build output as a GitHub Actions artifact. It does not create a GitHub Release.
+## Build design
 
-## Local build
+Common build logic lives in:
 
-On a Debian 13 amd64 build host, install the dependencies in `docs/BUILD_KIRKWOOD.md`, set your own package identity, then run:
+```text
+scripts/build-platform.sh
+```
+
+The existing platform entry points remain available:
+
+```text
+scripts/build-kirkwood.sh
+scripts/build-mvebu.sh
+```
+
+This keeps the current GitHub Actions workflows and manual commands backward-compatible while avoiding duplicate build logic.
+
+## GitHub Actions
+
+Two manually triggered workflows are available:
+
+```text
+Build Kirkwood 7.1.9
+Build MVEBU 7.1.9
+```
+
+Create these repository variables under **Settings → Secrets and variables → Actions → Variables**:
+
+- `DEB_FULLNAME` — your package maintainer name
+- `DEB_EMAIL` — your package maintainer email; a GitHub noreply address is fine
+
+The workflows upload build artifacts but do not create GitHub Releases.
+
+## Local builds
+
+On a Debian 13 amd64 build host, set your package identity and run:
 
 ```bash
 export DEBFULLNAME="your name"
 export DEBEMAIL="your email"
 ./scripts/build-kirkwood.sh raffe-1
+./scripts/build-mvebu.sh raffe-1
 ```
 
-Output is written under:
+Output is written below `dist/kirkwood/` and `dist/mvebu/`.
 
-```text
-dist/kirkwood/7.1.9-raffe-1/
-```
+## Built-in verification
 
-## Verification built into the script
+The common build script verifies:
 
-For Kirkwood 7.1.9, the build checks:
-
-- upstream Linux tarball SHA256
-- patch dry-run before applying it
+- upstream Linux archive SHA256
+- required config, patch and reference files
+- bodhi config/patch SHA256 where those references are stored
+- patch dry-run before applying
 - expected custom kernel release
-- presence of `zImage`
-- exactly 107 `kirkwood-*.dtb` files
-- the known reference SHA256 for `kirkwood-n1t1.dtb`
-- expected image and headers `.deb` files
-- final six-file archive plus SHA256SUMS and build metadata
+- `zImage`
+- expected DTB count
+- known reference DTB SHA256
+- expected image and headers Debian packages
+- release-style six-file package
+- `SHA256SUMS`
+- build metadata including the Git commit
 
-See `docs/BUILD_KIRKWOOD.md` for details and `docs/NAS_GIT_WORKFLOW.md` for the short QNAP Git workflow.
+## Adding another kernel version
+
+See `docs/ADDING_KERNEL_VERSION.md`.
+
+A newer kernel version is **not** automatically considered verified merely because it builds. Its config, patch, DTBs and package output must first be checked against the appropriate reference.
+
+## Documentation
+
+- `docs/BUILD_KIRKWOOD.md`
+- `docs/BUILD_MVEBU.md`
+- `docs/ADDING_KERNEL_VERSION.md`
+- `docs/NAS_GIT_WORKFLOW.md`
+- `docs/PROJECT_STATUS.md`

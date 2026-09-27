@@ -1,6 +1,6 @@
 # Build Kirkwood 7.1.9
 
-This is the first and deliberately narrow build path in the repository. It mirrors the Kirkwood flow that was already verified on Debian 13 amd64.
+The Kirkwood 7.1.9 path has been successfully built and verified through GitHub Actions. It uses the common build engine through `scripts/build-kirkwood.sh`.
 
 ## 1. Required repo files
 
@@ -18,7 +18,7 @@ The script refuses to continue if either is missing.
 ```bash
 sudo dpkg --add-architecture armel
 sudo apt update
-sudo apt install build-essential crossbuild-essential-armel bc bison flex cpio rsync kmod fakeroot dpkg-dev debhelper libssl-dev libssl-dev:armel libelf-dev libdw-dev dwarves patch xz-utils wget
+sudo apt install build-essential crossbuild-essential-armel python3 bc bison flex cpio rsync kmod fakeroot dpkg-dev debhelper libssl-dev libssl-dev:armel libelf-dev libdw-dev dwarves patch xz-utils wget
 ```
 
 The `libssl-dev:armel` package is important for this cross-package build.

@@ -1,33 +1,51 @@
 # Project status
 
-## Verified before this repo scaffold
+## Verified
 
-- Kirkwood Linux 7.1.9 build on Debian 13 amd64.
+### Kirkwood 7.1.9
+
+- Debian 13 amd64 / GitHub Actions build environment.
 - `ARCH=arm`, `CROSS_COMPILE=arm-linux-gnueabi-`, `KBUILD_DEBARCH=armel`.
-- all 107 Kirkwood DTBs matched the bodhi reference byte-for-byte.
-- N1T1 DTB reference SHA256 is stored in `checksums/kirkwood-7.1.9-reference.env`.
-- the image package file list matched the bodhi reference.
+- custom release `7.1.9-kirkwood-tld-1-raffe-1`.
+- 107 Kirkwood DTBs.
+- `kirkwood-n1t1.dtb` verified against the stored reference SHA256.
+- Debian image and headers packages built successfully.
+- release artifact verified.
 
-## Implemented in this scaffold
+### MVEBU 7.1.9
 
-- one Kirkwood-only shell build script
-- one manual GitHub Actions workflow using `debian:13`
-- upstream Linux 7.1.9 SHA256 verification
-- custom local version suffix
-- custom Debian package identity via repository variables
-- Actions artifact upload, no automatic GitHub Release
-- short QNAP Git workflow
+- Debian 13 amd64 / GitHub Actions build environment.
+- `ARCH=arm`, `CROSS_COMPILE=arm-linux-gnueabihf-`, `KBUILD_DEBARCH=armhf`.
+- custom release `7.1.9-mvebu-tld-1-raffe-1`.
+- 82 Marvell DTBs.
+- `armada-380-zyxel-nas326.dtb` verified against bodhi's reference SHA256.
+- Debian image and headers packages built successfully.
+- release artifact verified.
 
-## Still required before the first successful Actions run
+## Implemented
 
-- add the saved Kirkwood 7.1.9 config file
-- add the saved Kirkwood 7.1.9 patch file
-- create `DEB_FULLNAME` and `DEB_EMAIL` repository variables
+- Kirkwood GitHub Actions workflow.
+- MVEBU GitHub Actions workflow.
+- common platform-aware build engine with backward-compatible wrapper scripts.
+- upstream kernel SHA256 verification.
+- custom `CONFIG_LOCALVERSION`.
+- custom Debian package identity.
+- reference DTB checks.
+- Git commit recorded in build metadata.
+- artifact `SHA256SUMS`.
+- short QNAP Git workflow.
 
-## Deferred
+## Current reference kernel
 
-- MVEBU automation
-- matrix/generalized workflow
-- GitHub Releases
-- newer kernel porting
-- rootfs automation
+```text
+Linux 7.1.9
+```
+
+## Possible next work
+
+- verify and add a newer kernel version.
+- optional GitHub Releases.
+- optional Actions matrix workflow.
+- rootfs automation.
+
+New kernel versions must be verified independently before being marked known-good.
