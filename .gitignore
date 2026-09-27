@@ -1,0 +1,14 @@
+# Build/download output
+/.work/
+/dist/
+
+# Kernel/source archives and generated packages
+*.tar.xz
+*.tar.gz
+*.tar.bz2
+*.deb
+
+# Patch rejects / editor backups
+*.rej
+*.orig
+*~

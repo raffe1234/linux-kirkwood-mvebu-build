@@ -1,0 +1,74 @@
+name: Build Kirkwood 7.1.9
+
+on:
+  workflow_dispatch:
+    inputs:
+      local_revision:
+        description: Custom local revision, for example raffe-1
+        required: true
+        default: raffe-1
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: debian:13
+    defaults:
+      run:
+        shell: bash
+    env:
+      DEBFULLNAME: ${{ vars.DEB_FULLNAME }}
+      DEBEMAIL: ${{ vars.DEB_EMAIL }}
+
+    steps:
+      - name: Install checkout prerequisites
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends git ca-certificates
+
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Check custom package identity
+        run: |
+          test -n "$DEBFULLNAME" || { echo "Set repository variable DEB_FULLNAME" >&2; exit 1; }
+          test -n "$DEBEMAIL" || { echo "Set repository variable DEB_EMAIL" >&2; exit 1; }
+
+      - name: Install Kirkwood cross-build dependencies
+        run: |
+          dpkg --add-architecture armel
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential \
+            crossbuild-essential-armel \
+            bc \
+            bison \
+            flex \
+            cpio \
+            rsync \
+            kmod \
+            fakeroot \
+            dpkg-dev \
+            debhelper \
+            libssl-dev \
+            libssl-dev:armel \
+            libelf-dev \
+            libdw-dev \
+            dwarves \
+            patch \
+            xz-utils \
+            wget
+
+      - name: Build Kirkwood kernel
+        run: ./scripts/build-kirkwood.sh "${{ inputs.local_revision }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: kirkwood-7.1.9-${{ inputs.local_revision }}
+          path: dist/kirkwood/7.1.9-${{ inputs.local_revision }}/
+          if-no-files-found: error
+          retention-days: 14
