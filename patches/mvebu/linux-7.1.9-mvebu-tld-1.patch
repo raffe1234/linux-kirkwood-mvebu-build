@@ -1,0 +1,6233 @@
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-370-mirabox.dts b/arch/arm/boot/dts/marvell/armada-370-mirabox.dts
+--- a/arch/arm/boot/dts/marvell/armada-370-mirabox.dts	2026-08-19 09:20:32.000000000 -0700
++++ b/arch/arm/boot/dts/marvell/armada-370-mirabox.dts	2026-08-21 11:11:17.759903548 -0700
+@@ -108,6 +108,7 @@
+ 					reg = <0x25>;
+ 				};
+ 			};
++			
+ 		};
+ 	};
+ };
+@@ -182,3 +183,7 @@
+ 		};
+ 	};
+ };
++
++&coherencyfab {
++	broken-idle;
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-370-netgear-rn102.dts b/arch/arm/boot/dts/marvell/armada-370-netgear-rn102.dts
+--- a/arch/arm/boot/dts/marvell/armada-370-netgear-rn102.dts	2026-08-19 09:20:32.000000000 -0700
++++ b/arch/arm/boot/dts/marvell/armada-370-netgear-rn102.dts	2026-08-21 11:11:17.759903548 -0700
+@@ -15,6 +15,11 @@
+ 	model = "NETGEAR ReadyNAS 102";
+ 	compatible = "netgear,readynas-102", "marvell,armada370", "marvell,armada-370-xp";
+ 
++	aliases {
++		ethernet0 = &eth0;
++		ethernet1 = &eth1;
++	};
++
+ 	chosen {
+ 		stdout-path = "serial0:115200n8";
+ 	};
+@@ -103,25 +108,25 @@
+ 		blue-power-led {
+ 			label = "rn102:blue:pwr";
+ 			gpios = <&gpio1 25 GPIO_ACTIVE_LOW>;
+-			default-state = "keep";
++			linux,default-trigger = "default-on";
+ 		};
+ 
+ 		blue-sata1-led {
+ 			label = "rn102:blue:sata1";
+ 			gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
+-			default-state = "on";
++			linux,default-trigger = "ide-disk1";
+ 		};
+ 
+ 		blue-sata2-led {
+ 			label = "rn102:blue:sata2";
+ 			gpios = <&gpio0 14 GPIO_ACTIVE_LOW>;
+-			default-state = "on";
++			linux,default-trigger = "ide-disk2";
+ 		};
+ 
+ 		blue-backup-led {
+ 			label = "rn102:blue:backup";
+ 			gpios = <&gpio1 24 GPIO_ACTIVE_LOW>;
+-			default-state = "on";
++			linux,default-trigger = "default-on";
+ 		};
+ 	};
+ 
+@@ -157,6 +162,34 @@
+ 		pinctrl-names = "default";
+ 		gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
+ 	};
++	
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "SPDIF";
++		simple-audio-card,format = "i2s";
++
++		simple-audio-card,cpu {
++			sound-dai = <&audio_controller 1>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&spdif_out>;
++		};
++	};
++
++	spdif_out: spdif-out {
++		#sound-dai-cells = <0>;
++		compatible = "linux,spdif-dit";
++	};
++
++};
++
++&audio_controller {
++	/* Which GPIO ??? in SPDIFO mode */
++	pinctrl-0 = <&spdif_pins>;
++	pinctrl-names = "default";
++	spdif-mode;
++	status = "okay";
+ };
+ 
+ &pciec {
+@@ -223,6 +256,13 @@
+ 		marvell,pins = "mpp8";
+ 		marvell,function = "gpio";
+ 	};
++
++	/* TBD need to find the correct pin number in GPL or Ref Manual */
++	spdif_pins: spdif-pins {
++		marvell,pins = "mpp51";
++		marvell,function = "audio";
++	};
++
+ };
+ 
+ &nand_controller {
+@@ -247,7 +287,6 @@
+ 			partition@0 {
+ 				label = "u-boot";
+ 				reg = <0x0000000 0x180000>;  /* 1.5MB */
+-				read-only;
+ 			};
+ 
+ 			partition@180000 {
+@@ -274,3 +313,7 @@
+ 		};
+ 	};
+ };
++
++&coherencyfab {
++	broken-idle;
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-370-netgear-rn104.dts b/arch/arm/boot/dts/marvell/armada-370-netgear-rn104.dts
+--- a/arch/arm/boot/dts/marvell/armada-370-netgear-rn104.dts	2026-08-19 09:20:32.000000000 -0700
++++ b/arch/arm/boot/dts/marvell/armada-370-netgear-rn104.dts	2026-08-21 11:11:17.759903548 -0700
+@@ -40,6 +40,12 @@
+ 				status = "okay";
+ 			};
+ 
++			/* eSATA interface */
++			sata@a0000 {
++				nr-ports = <1>;
++				status = "okay";
++			};
++
+ 			ethernet@70000 {
+ 				pinctrl-0 = <&ge0_rgmii_pins>;
+ 				pinctrl-names = "default";
+@@ -300,3 +306,7 @@
+ 		};
+ 	};
+ };
++
++&coherencyfab {
++        broken-idle;
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-370-rtnas-v3.dts b/arch/arm/boot/dts/marvell/armada-370-rtnas-v3.dts
+--- a/arch/arm/boot/dts/marvell/armada-370-rtnas-v3.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-370-rtnas-v3.dts	2026-08-21 11:11:17.759903548 -0700
+@@ -0,0 +1,330 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Device Tree file for Marvell RTNAS V3
++ * (RD-88F6710-A1)
++ *
++ *  Copied from arch/arm/boot/dts/marvell/armada-370-db.dts
++ *
++ *  Copyright (C) 2021 Wacke <cao88yu@gmail.com>
++ *
++ * Note: this Device Tree assumes that the bootloader has remapped the
++ * internal registers to 0xf1000000 (instead of the default
++ * 0xd0000000). The 0xf1000000 is the default used by the recent,
++ * DT-capable, U-Boot bootloaders provided by Marvell. Some earlier
++ * boards were delivered with an older version of the bootloader that
++ * left internal registers mapped at 0xd0000000. If you are in this
++ * situation, you should either update your bootloader (preferred
++ * solution) or the below Device Tree should be adjusted.
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/interrupt-controller/irq.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-370.dtsi"
++
++/ {
++	model = "RTNAS V3";
++	compatible = "marvell,armada-370-rtnasv3", "marvell,armada370", "marvell,armada-370-xp";
++
++	aliases {
++		led-boot = &led_power;
++		led-failsafe = &led_power;
++		led-running = &led_power;
++		led-upgrade = &led_power;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>; /* 1024 MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++				  MBUS_ID(0x01, 0xe0) 0 0xfff00000 0x100000
++				  MBUS_ID(0x09, 0x01) 0 0xf1100000 0x10000>;
++
++		internal-regs {
++			serial@12000 {
++				status = "okay";
++			};
++
++			sata@a0000 {
++				nr-ports = <2>;
++				status = "okay";
++			};
++
++			mvsdio@d4000 {
++				pinctrl-0 = <&sdio_pins1>;
++				pinctrl-names = "default";
++				status = "disabled";
++				/* No CD or WP GPIOs */
++				broken-cd;
++			};
++
++			usb@50000 {
++				status = "okay";
++			};
++
++			usb@51000 {
++				status = "okay";
++			};
++
++			gpio-keys {
++				compatible = "gpio-keys";
++				pinctrl-0 = <&reset_button_pin &pwr_button_pin>;
++				pinctrl-names = "default";
++
++				reset_button {
++					label = "Reset Button";
++					linux,code = <KEY_RESTART>;
++					gpios = <&gpio1 30 GPIO_ACTIVE_LOW>;
++				};
++
++				wps_button {
++					label = "Software Button";
++					linux,code = <KEY_POWER>;
++					gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
++				};
++			};
++
++			gpio-leds {
++				compatible = "gpio-leds";
++				pinctrl-names = "default";
++				pinctrl-0 = <&pwr_led_pin &wps_led_pins>;
++
++				led_power: blue_pwr_led {
++					label = "rtnasv3:blue:pwr";
++					gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
++					default-state = "on";
++				};
++
++				blue_wps_led {
++					label = "rtnasv3:blue:wps";
++					gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
++					default-state = "off";
++				};
++			};
++		};
++	};
++};
++
++&pciec {
++	status = "okay";
++
++	/* Internal mini-PCIe connector */
++	pcie@1,0 {
++		/* Port 0, Lane 0 */
++		status = "okay";
++	};
++
++	/* Internal mini-PCIe connector */
++	pcie@2,0 {
++		/* Port 1, Lane 0 */
++		status = "okay";
++	};
++};
++
++
++&pinctrl {
++	compatible = "marvell,mv88f6710-pinctrl";
++
++	pwr_button_pin: pwr-button-pin {
++		marvell,pins = "mpp52";
++		marvell,function = "gpio";
++	};
++
++	reset_button_pin: reset-button-pin {
++		marvell,pins = "mpp62";
++		marvell,function = "gpio";
++	};
++
++	pwr_led_pin: pwr-led-pin {
++		marvell,pins = "mpp6";
++		marvell,function = "gpio";
++	};
++
++	wps_led_pins: wps-led-pins {
++		marvell,pins = "mpp50";
++		marvell,function = "gpio";
++	};
++};
++
++&nand_controller {
++	status = "okay";
++
++	nand@0 {
++		reg = <0>;
++		label = "pxa3xx_nand-0";
++		nand-rb = <0>;
++		marvell,nand-keep-config;
++		nand-on-flash-bbt;
++		num-cs = <2>;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "uboot";
++				reg = <0x0 0x400000>;
++			};
++
++			partition@400000 {
++				label = "uboot_env";
++				reg = <0x400000 0x400000>;
++			};
++
++			partition@800000 {
++				label = "vendor";
++				reg = <0x800000 0x400000>;
++			};
++
++			partition@c00000 {
++				label = "rescue";
++				reg = <0xc00000 0x2000000>;
++			};
++
++			partition@8c00000 {
++				label = "kernel";
++				reg = <0x2c00000 0x800000>;
++			};
++
++			partition@3400000 {
++				label = "ubi";
++				reg = <0x3400000 0x40000000>;
++			};
++
++			partition@43400000 {
++				label = "rootfs_data";
++				reg = <0x43400000 0xbcc00000>;
++			};
++		};
++	};
++};
++
++&mdio {
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	switch: switch0@0 {
++		compatible = "marvell,mv88e6085";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		reg = <0>;
++		interrupt-controller;
++		#interrupt-cells = <2>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++			       reg = <0>;
++			       label = "lan1";
++			};
++
++			port@1 {
++			       reg = <1>;
++			       label = "lan2";
++			};
++
++			port@2 {
++			       reg = <2>;
++			       label = "lan3";
++			};
++
++			port@3 {
++			       reg = <3>;
++			       label = "lan4";
++			};
++
++			port@4 {
++			       reg = <4>;
++			       label = "wan";
++			};
++
++			port@5 {
++				reg = <5>;
++				label = "cpu";
++				ethernet = <&eth1>;
++				phy-mode = "rgmii-id";
++
++				fixed-link {
++					speed = <1000>;
++					full-duplex;
++				};
++			};
++		};
++
++		mdio {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			switchphy0: switchphy@0 {
++				reg = <0>;
++				interrupt-parent = <&switch>;
++				interrupts = <0 IRQ_TYPE_LEVEL_HIGH>;
++			};
++
++			switchphy1: switchphy@1 {
++				reg = <1>;
++				interrupt-parent = <&switch>;
++				interrupts = <1 IRQ_TYPE_LEVEL_HIGH>;
++			};
++
++			switchphy2: switchphy@2 {
++				reg = <2>;
++				interrupt-parent = <&switch>;
++				interrupts = <2 IRQ_TYPE_LEVEL_HIGH>;
++			};
++
++			switchphy3: switchphy@3 {
++				reg = <3>;
++				interrupt-parent = <&switch>;
++				interrupts = <3 IRQ_TYPE_LEVEL_HIGH>;
++			};
++
++			switchphy4: switchphy@4 {
++				reg = <4>;
++				interrupt-parent = <&switch>;
++				interrupts = <4 IRQ_TYPE_LEVEL_HIGH>;
++			};
++		};
++	};
++};
++
++&coherencyfab {
++	broken-idle;
++};
++
++&eth0 {
++	status = "disabled";
++};
++
++/* eth1 is connected to a Marvell 88E6171 switch, without a PHY. So set
++ * fixed speed and duplex.
++ */
++&eth1 {
++	status = "okay";
++	phy-mode = "rgmii-id";
++	pinctrl-0 = <&ge1_rgmii_pins>;
++	local-mac-address = [00 11 32 21 46 bf];
++	fixed-link {
++		   speed = <1000>;
++		   full-duplex;
++	};
++};
++
++&rtc {
++	status = "disabled";
++};
++
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-370-shuttle-ks10.dts b/arch/arm/boot/dts/marvell/armada-370-shuttle-ks10.dts
+--- a/arch/arm/boot/dts/marvell/armada-370-shuttle-ks10.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-370-shuttle-ks10.dts	2026-08-21 11:11:17.759903548 -0700
+@@ -0,0 +1,207 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Device Tree file for Shuttle Omninas KS10
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-370.dtsi"
++
++/ {
++	model = "Shuttle Omninas KS10";
++	compatible = "shuttle,ks10", "marvell,armada370", "marvell,armada-370-xp";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0x00000000 0x10000000>; /* 256 MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xd0000000 0x100000
++			  MBUS_ID(0x01, 0xe0) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x01) 0 0xf1100000 0x10000>;
++
++		internal-regs {
++			serial@12000 {
++				status = "okay";
++			};
++
++			/* SATA interface */
++			sata@a0000 {
++				nr-ports = <1>;
++				status = "okay";
++			};
++
++			timer@20300 {
++				clock-frequency = <600000000>;
++				status = "okay";
++			};
++
++			gpio_leds {
++				compatible = "gpio-leds";
++				pinctrl-names = "default";
++		//		pinctrl-0 = <&pwr_led_pin &stat_led_pins>;
++
++				red_system_led {
++					label = "ks10:red:system";
++					gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
++					default-state = "off";
++				};
++
++				blue_system_led {
++					label = "ks10:blue:system";
++					gpios = <&gpio0 30 GPIO_ACTIVE_HIGH>;
++					default-state = "on";
++				};
++
++				blue_hdd_led {
++					label = "ks10:blue:hdd";
++					gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
++					default-state = "off";
++				};
++
++				blue_sd_led {
++					label = "ks10:blue:sd";
++					gpios = <&gpio0 27 GPIO_ACTIVE_HIGH>;
++					default-state = "off";
++				};
++
++				blue_usb_led {
++					label = "ks10:blue:usb";
++					gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
++					default-state = "off";
++				};
++			};
++
++			gpio-keys {
++				compatible = "gpio-keys";
++//				pinctrl-0 = <&power_button_pin &reset_button_pin>;
++				pinctrl-names = "default";
++
++				power-button {
++					label = "Power Button";
++					linux,code = <KEY_POWER>;
++					gpios = <&gpio1 24 GPIO_ACTIVE_HIGH>;
++				};
++
++				reset-button {
++					label = "Reset Button";
++					linux,code = <KEY_RESTART>;
++					gpios = <&gpio0 24 GPIO_ACTIVE_HIGH>;
++				};
++			};
++
++			ethernet@70000 {
++				pinctrl-0 = <&ge0_rgmii_pins>;
++				pinctrl-names = "default";
++				status = "okay";
++				phy = <&phy0>;
++				phy-mode = "rgmii-id";
++			};
++
++			crypto@90000 {
++				status = "okay";
++			};
++
++			mvsdio@d4000 {
++				pinctrl-0 = <&sdio_pins3>;
++				pinctrl-names = "default";
++				status = "okay";
++				/*
++				 * No CD or WP GPIOs: SDIO interface used for
++				 * Wifi/Bluetooth chip
++				 */
++				 broken-cd;
++			};
++
++			usb@50000 {
++				status = "okay";
++			};
++
++			usb@51000 {
++				status = "okay";
++			};
++
++			i2c@11000 {
++				status = "okay";
++				clock-frequency = <100000>;
++				pcf8563@51 {
++					compatible = "nxp,pcf8563";
++					reg = <0x51>;
++				};
++			};
++		};
++	};
++};
++
++&pciec {
++	status = "okay";
++
++	/* Internal mini-PCIe connector */
++	pcie@1,0 {
++		/* Port 0, Lane 0 */
++		status = "okay";
++	};
++
++	/* For the KD21 or KD22 USB3 might be connected here */
++	pcie@2,0 {
++		/* Port 1, Lane 0 */
++		status = "disabled";
++	};
++};
++
++&mdio {
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++	phy0: ethernet-phy@0 {
++		reg = <0>;
++	};
++};
++
++&pinctrl {
++/*	pwr_led_pin: pwr-led-pin {
++		marvell,pins = "mpp63";
++		marvell,function = "gpio";
++	};
++
++	stat_led_pins: stat-led-pins {
++		marvell,pins = "mpp64", "mpp65";
++		marvell,function = "gpio";
++	};*/
++};
++
++&nand_controller {
++	status = "okay";
++
++	nand@0 {
++		reg = <0>;
++		label = "pxa3xx_nand-0";
++		nand-rb = <0>;
++		marvell,nand-keep-config;
++		nand-on-flash-bbt;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "kernel";
++				reg = <0 0x0800000>;
++			};
++			partition@800000 {
++				label = "initrd";
++				reg = <0x0800000 0x600000>;
++			};
++			partition@e00000 {
++				label = "rootfs";
++				reg = <0x0e00000 0x7200000>;
++			};
++		};
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-370-wdmc-mirror-gen1.dts b/arch/arm/boot/dts/marvell/armada-370-wdmc-mirror-gen1.dts
+--- a/arch/arm/boot/dts/marvell/armada-370-wdmc-mirror-gen1.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-370-wdmc-mirror-gen1.dts	2026-08-21 11:11:17.759903548 -0700
+@@ -0,0 +1,300 @@
++/*
++ * Device Tree file for WD MyCloud Mirror
++ * Based on DB-88F6710-BP-DDR3
++ *
++ *  Copyright (C) 2012 Marvell
++ *
++ * Lior Amsalem <alior@marvell.com>
++ * Gregory CLEMENT <gregory.clement@free-electrons.com>
++ * Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
++ * Allester Fox <fox.axon@gmail.com>
++ *
++ * This file is licensed under the terms of the GNU General Public
++ * License version 2.  This program is licensed "as is" without any
++ * warranty of any kind, whether express or implied.
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-370.dtsi"
++
++/ {
++	model = "WD MyCloud Mirror";
++	compatible = "marvell,a370-db", "marvell,armada370", "marvell,armada-370-xp";
++
++	chosen {
++		stdout-path = "serial0:115200n8 root=LABEL=rootfs earlyprintk";
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0x00000000 0x20000000>; /* 512 MiB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			MBUS_ID(0x01, 0xe0) 0 0xfff00000 0x100000
++			MBUS_ID(0x09, 0x01) 0 0xf1100000 0x10000>;
++
++		internal-regs {
++			sata@a0000 {
++				nr-ports = <2>;
++				status = "okay";
++			};
++
++			usb@50000 {
++				status = "okay";
++			};
++
++			nand_controller: nand-controller@d0000 {
++				status = "okay";
++
++				nand: nand@0 {
++					reg = <0>;
++					label = "pxa3xx_nand-0";
++					nand-rb = <0>;
++					marvell,nand-keep-config;
++					#marvell,nand-enable-arbiter; //optional
++					nand-on-flash-bbt;
++					nand-ecc-strength = <4>;
++					nand-ecc-step-size = <512>;
++				
++					partitions {
++						compatible = "fixed-partitions";
++						#address-cells = <1>;
++						#size-cells = <1>;
++
++						partition@0 {
++							label = "u-Boot";
++							reg = <0x00000000 0x00500000>;	// Warning: New style: <start size> not old <start end> !
++							read-only;
++						};
++						partition@500000 {
++							label = "uImage";
++							reg = <0x00500000 0x00500000>;
++						};
++						partition@a00000 {
++							label = "ramdisk";
++							reg = <0x00A00000 0x00500000>;
++						};
++						partition@f00000 {
++							label = "image.cfs";
++							reg = <0x00f00000 0x0c900000>;
++						};
++						partition@dd00000 {
++							label = "rescue firmware";
++							reg = <0x0dd00000 0x00f00000>;
++						};
++						partition@ec00000 {
++							label = "config";
++							reg = <0x0ec00000 0x01400000>;
++						};
++						partition@d800000 {
++							label = "reserve";
++							reg = <0x0d800000 0x00500000>;
++						};
++					};
++				};
++			};
++		};
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++		pinctrl-0 = <&reset_button_pin>;
++		pinctrl-names = "default";
++
++		reset-button {
++			label = "Reset Button";
++			linux,code = <KEY_RESTART>;
++			gpios = <&gpio2 1 GPIO_ACTIVE_LOW>;
++		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&led_pins>;
++
++		hdd1-blue {
++			label = "hdd1-blue";
++			gpios = <&gpio1 25 GPIO_ACTIVE_HIGH>;	// gpio57
++			//linux,default-trigger = "none";
++			default-state = "keep";
++		};
++		hdd2-blue {
++			label = "hdd2-blue";
++			gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;	// gpio55
++			//linux,default-trigger = "none";
++			default-state = "keep";
++		};
++		hdd1-red {
++			label = "hdd1-red";
++			gpios = <&gpio1 21 GPIO_ACTIVE_HIGH>;	// gpio53
++			// linux,default-trigger = "none";
++			default-state = "keep";
++		};
++		hdd2-red {
++			label = "hdd2-red";
++			gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>;	// gpio52
++			// linux,default-trigger = "none";
++			default-state = "keep";
++		};
++	};
++
++	gpio-fan {
++		status = "okay";
++		compatible = "gpio-fan";
++		pinctrl-names = "default";
++		pinctrl-0 = <&fan_pins>;
++
++		gpios = <&gpio0 8 GPIO_ACTIVE_HIGH
++				&gpio0 16 GPIO_ACTIVE_HIGH
++				&gpio1 0 GPIO_ACTIVE_HIGH	// mpp32: 32-32=0
++				&gpio0 6 GPIO_ACTIVE_HIGH>;
++		alarm-gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
++		gpio-fan,speed-map = < 0 0
++			 1500 1
++			 1700 2
++			 1800 3
++			 2100 4>;
++	};
++
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		usb_power: regulator@1 {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			pinctrl-0 = <&xhci_pwr_pin>;
++			pinctrl-names = "default";
++			regulator-name = "USB3.0 Port Power";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			enable-active-high;
++			regulator-boot-on;
++			regulator-always-on;
++			gpio = <&gpio0 13 GPIO_ACTIVE_HIGH>;
++		};
++
++		sata_1_power: regulator@2 {
++			compatible = "regulator-fixed";
++			reg = <2>;
++			pinctrl-0 = <&sata_1_pwr_pin>;
++			pinctrl-names = "default";
++			regulator-name = "SATA-1 Power";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			startup-delay-us = <2000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio1 22 GPIO_ACTIVE_HIGH>;
++		};
++
++		sata_2_power: regulator@3 {
++			compatible = "regulator-fixed";
++			reg = <3>;
++			pinctrl-0 = <&sata_2_pwr_pin>;
++			pinctrl-names = "default";
++			regulator-name = "SATA-2 Power";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			startup-delay-us = <4000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio1 24 GPIO_ACTIVE_HIGH>;
++		};
++	};
++};
++
++&pciec {
++	status = "okay";
++
++	pcie@1,0 {
++		/* Port 0, Lane 0 */
++		status = "okay";
++	};
++
++	pcie@2,0 {
++		/* Port 1, Lane 0 */
++		status = "okay";
++	};
++};
++
++&pinctrl {
++	led_pins: led-pins {
++		// HDD2-Red, HDD1-Red, HDD1-Blue, HDD2-Blue
++		marvell,pins = "mpp52", "mpp53", "mpp57", "mpp55";
++		marvell,function = "gpio";
++	};
++
++	fan_pins: fan-pins {
++		marvell,pins = "mpp6", "mpp8", "mpp16", "mpp32";
++		marvell,function = "gpio";
++	};
++
++	xhci_pwr_pin: xhci-pwr-pin {
++		marvell,pins = "mpp13";
++		marvell,function = "gpio";
++	};
++
++	sata_1_pwr_pin: sata-1-pwr-pin {
++		marvell,pins = "mpp54";
++		marvell,function = "gpio";
++	};
++
++	sata_2_pwr_pin: sata-2-pwr-pin {
++		marvell,pins = "mpp56";
++		marvell,function = "gpio";
++	};
++
++	uart1_pins: uart1-pins {
++		marvell,pins = "mpp60", "mpp61";
++		marvell,function = "uart1";
++	};
++
++	reset_button_pin: reset-button-pin {
++		marvell,pins = "mpp64";
++		marvell,function = "gpio";
++	};
++};
++
++/* Serial console */
++&uart0 {
++	status = "okay";
++};
++
++/* Connected to Weltrend MCU */
++&uart1 {
++	pinctrl-0 = <&uart1_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++};
++
++&mdio {
++	phy0: ethernet-phy@0 { /* Marvell 88E1318 */
++		reg = <0>;
++		/*
++		marvell,reg-init = <0x0 0x16 0x0 0x0002>,
++				<0x0 0x19 0x0 0x0077>,
++				<0x0 0x18 0x0 0x5747>;
++		*/
++	};
++};
++
++&eth1 {
++	phy = <&phy0>;
++	phy-mode = "rgmii-id";
++	status = "okay";
++};
++
++&i2c0 {
++	compatible = "marvell,mv64xxx-i2c";
++	clock-frequency = <100000>;
++	status = "okay";
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-375-synology-ds215j.dts b/arch/arm/boot/dts/marvell/armada-375-synology-ds215j.dts
+--- a/arch/arm/boot/dts/marvell/armada-375-synology-ds215j.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-375-synology-ds215j.dts	2026-06-11 13:55:30.901218783 -0700
+@@ -0,0 +1,171 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Device Tree file for Synology DS215j NAS
++ *
++ * Copyright (C) 2025 bodhi <mibodhi@gmail.com>
++ */
++
++/dts-v1/;
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-375.dtsi"
++
++/ {
++	model = "Synology DS215j";
++	compatible = "synology,ds215j", "marvell,armada375";
++
++	chosen {
++		stdout-path = "serial0:115200";
++	};
++
++	aliases {
++		/* So that mvebu u-boot can update the MAC addresses */
++		ethernet0 = &eth0;
++		ethernet1 = &eth1;
++		spi0 = &spi0;
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0x00000000 0x20000000>; /* 512 MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x09) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x05) 0 0xf1110000 0x10000>;
++
++                internal-regs {
++
++			serial@12100 {
++				/* A PIC16F1829 is connected to uart1 at 9600 bps,
++				 * and takes single-character orders :
++				 *   "1" : power off // already handled by the poweroff node
++				 *   "2" : short beep
++				 *   "3" : long beep
++				 *   "4" : turn the power LED ON
++				 *   "5" : flash the power LED
++				 *   "6" : turn the power LED OFF
++				 *   "7" : turn the status LED OFF
++				 *   "8" : turn the status LED ON
++				 *   "9" : flash the status LED
++				 *   "A" : flash the motherboard LED (D8)
++				 *   "B" : turn the motherboard LED OFF
++				 *   "C" : hard reset
++				 */
++				pinctrl-names = "default";
++				status = "okay";
++			};
++
++			poweroff@12100 {
++				compatible = "synology,power-off";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++			};
++		};
++
++		gpio-fan {
++                        compatible = "gpio-fan";
++                        gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>,
++                                <&gpio1 18 GPIO_ACTIVE_HIGH>,
++                                <&gpio1 19 GPIO_ACTIVE_HIGH>;
++                        gpio-fan,speed-map = <   0 0>,
++                                             <1500 1>,
++                                             <2500 2>,
++                                             <3000 3>,
++                                             <3400 4>,
++                                             <3700 5>,
++                                             <3900 6>,
++                                             <4000 7>;
++                        #cooling-cells = <2>;
++                };
++
++	};
++};
++
++&spi0 {
++	pinctrl-0 = <&spi0_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	spi-flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "jedec,spi-nor";
++		reg = <0>; /* Chip select 0 */
++		spi-max-frequency = <50000000>;
++		partition@0 {
++			label = "u-boot";
++			reg = <0x0 0x100000>;
++		};
++	};
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&uart1 {
++	status = "okay";
++};
++
++&pinctrl {
++
++        mdio_pins: mdio-pins {
++		marvell,pins = "mpp37", "mpp38";
++		marvell,function = "ge";
++	};
++
++	ge1_rgmii_pins: ge1-rgmii-pins {
++		marvell,pins = "mpp24", "mpp25", "mpp26", "mpp27",
++			       "mpp28", "mpp29", "mpp30", "mpp31",
++			       "mpp32", "mpp33", "mpp34", "mpp35",
++			       "mpp37", "mpp38", "mpp51";
++		marvell,function = "ge1";
++	};
++};
++
++&sata {
++	status = "okay";
++	nr-ports = <2>;
++};
++
++&usb1 {
++	status = "okay";
++};
++
++&usb2 {
++	status = "okay";
++};
++
++&mdio {
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++	phy1: ethernet-phy@1 {
++		reg = <1>;
++	};
++};
++
++&ethernet {
++        status = "okay";
++};
++
++&eth1 {
++	status = "okay";
++	pinctrl-0 = <&ge1_rgmii_pins>;
++	pinctrl-names = "default";
++        phy = <&phy1>;
++	phy-mode = "rgmii-id";
++};
++
++&pciec {
++	status = "okay";
++};
++
++&pcie0 {
++	status = "okay";
++};
++
++&pcie1 {
++	status = "okay";
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-375-wd-mycloud-gen2.dts b/arch/arm/boot/dts/marvell/armada-375-wd-mycloud-gen2.dts
+--- a/arch/arm/boot/dts/marvell/armada-375-wd-mycloud-gen2.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-375-wd-mycloud-gen2.dts	2026-08-21 11:11:17.759903548 -0700
+@@ -0,0 +1,214 @@
++/*
++ * Device Tree file for WD MyCloud based on Marvell Armada 375
++ * (DB-88F6720)
++ *
++ *  Copyright (C) 2014 Marvell
++ *
++ * Gregory CLEMENT <gregory.clement@free-electrons.com>
++ * Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
++ * Allester Fox <fox.axon@gmail.com>
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This file is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This file is distributed in the hope that it will be useful,
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ * Or, alternatively,
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use,
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++/dts-v1/;
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-375.dtsi"
++
++/ {
++	model = "WD MyCloud Gen2";
++	compatible = "marvell,a375-db", "marvell,armada375";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0x00000000 0x20000000>; /* 512 MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x09) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x05) 0 0xf1110000 0x10000>;
++
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&sys_led_pins>;
++
++		system-red {
++			label = "system-red";
++			gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;	// chip, pin, state (1=active-low)
++			default-state = "keep";
++		};
++		system-green {
++			label = "system-green";
++			gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>; // 43 (mpp43) - 32 (gpio in chip) = 11 (pin in this chip)
++			linux,default-trigger = "ide-disk1";
++			//default-state = "on";
++		};
++		system-blue {
++			label = "system-blue";
++			gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
++			//linux,default-trigger = "default-off";
++			default-state = "on";
++		};
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++		pinctrl-names = "default";
++		pinctrl-0 = <&btn_reset_pins>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		btn-reset {
++			label = "btn-reset";
++			gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>; // 44-32=12
++			linux,code = <198>; // KEY_RESTART, from: include/uapi/linux/input-event-codes.h
++			gpio-key,wakeup;
++			//autorepeat;
++		};
++	};
++
++	usb3_phy: usb3-phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&usb3_vbus>;
++	};
++
++	usb3_vbus: usb3-vbus {
++		compatible = "regulator-fixed";
++		pinctrl-names = "default";
++		pinctrl-0 = <&usb3_vbus_pins>;
++		regulator-name = "usb3-vbus";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		gpio = <&gpio0 13 GPIO_ACTIVE_HIGH>;
++	};
++};
++
++&spi0 {
++	pinctrl-0 = <&spi0_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++
++	spi-flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "mxicy,mx25l8005", "jedec,spi-nor";
++		reg = <0>; /* Chip select 0 */
++		spi-max-frequency = <108000000>;
++		partition@0 {
++			label = "u-boot";
++			reg = <0x0 0x100000>;
++		};
++	};
++};
++
++&i2c0 {
++	status = "okay";
++	clock-frequency = <100000>;
++	pinctrl-0 = <&i2c0_pins>;
++	pinctrl-names = "default";
++};
++
++&i2c1 {
++	status = "okay";
++	clock-frequency = <100000>;
++	pinctrl-0 = <&i2c1_pins>;
++	pinctrl-names = "default";
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&pinctrl {
++	sys_led_pins: sys-led-pins {
++		marvell,pins = "mpp20", "mpp43", "mpp22"; // R G B
++		marvell,function = "gpio";
++	};
++
++	btn_reset_pins: btn-reset-pins {
++		marvell,pins = "mpp44";
++		marvell,function = "gpio";
++	};
++
++	usb3_vbus_pins: usb3-vbus-pins {
++		marvell,pins = "mpp13";
++		marvell,function = "gpio";
++	};
++};
++
++&sata {
++	status = "okay";
++	nr-ports = <1>;
++};
++
++&usb1 {
++	status = "okay";
++};
++
++&usb2 {
++	status = "okay";
++};
++
++&mdio {
++	phy0: ethernet-phy@0 {
++		reg = <0>;
++	};
++};
++
++&ethernet {
++	status = "okay";
++};
++
++&eth0 {
++	status = "okay";
++	phy = <&phy0>;
++	phy-mode = "rgmii-id";
++};
++
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-380.dtsi b/arch/arm/boot/dts/marvell/armada-380.dtsi
+--- a/arch/arm/boot/dts/marvell/armada-380.dtsi	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-380.dtsi	2026-06-01 08:54:55.000000000 -0700
+@@ -0,0 +1,148 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Device Tree Include file for Marvell Armada 380 SoC.
++ *
++ * Copyright (C) 2014 Marvell
++ *
++ * Lior Amsalem <alior@marvell.com>
++ * Gregory CLEMENT <gregory.clement@free-electrons.com>
++ * Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
++ */
++
++#include "armada-38x.dtsi"
++
++/ {
++	model = "Marvell Armada 380 family SoC";
++	compatible = "marvell,armada380";
++
++	cpus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		enable-method = "marvell,armada-380-smp";
++
++		cpu@0 {
++			device_type = "cpu";
++			compatible = "arm,cortex-a9";
++			reg = <0>;
++		};
++	};
++
++	soc {
++		internal-regs {
++			pinctrl@18000 {
++				compatible = "marvell,mv88f6810-pinctrl";
++			};
++		};
++
++		pcie {
++			compatible = "marvell,armada-370-pcie";
++			status = "disabled";
++			device_type = "pci";
++
++			#address-cells = <3>;
++			#size-cells = <2>;
++
++			msi-parent = <&mpic>;
++			bus-range = <0x00 0xff>;
++
++			ranges =
++			       <0x82000000 0 0x80000 MBUS_ID(0xf0, 0x01) 0x80000 0 0x00002000
++				0x82000000 0 0x40000 MBUS_ID(0xf0, 0x01) 0x40000 0 0x00002000
++				0x82000000 0 0x44000 MBUS_ID(0xf0, 0x01) 0x44000 0 0x00002000
++				0x82000000 0 0x48000 MBUS_ID(0xf0, 0x01) 0x48000 0 0x00002000
++				0x82000000 0x1 0     MBUS_ID(0x08, 0xe8) 0 1 0 /* Port 0 MEM */
++				0x81000000 0x1 0     MBUS_ID(0x08, 0xe0) 0 1 0 /* Port 0 IO  */
++				0x82000000 0x2 0     MBUS_ID(0x04, 0xe8) 0 1 0 /* Port 1 MEM */
++				0x81000000 0x2 0     MBUS_ID(0x04, 0xe0) 0 1 0 /* Port 1 IO  */
++				0x82000000 0x3 0     MBUS_ID(0x04, 0xd8) 0 1 0 /* Port 2 MEM */
++				0x81000000 0x3 0     MBUS_ID(0x04, 0xd0) 0 1 0 /* Port 2 IO  */>;
++
++			/* x1 port */
++			pcie@1,0 {
++				device_type = "pci";
++				assigned-addresses = <0x82000800 0 0x80000 0 0x2000>;
++				reg = <0x0800 0 0 0 0>;
++				#address-cells = <3>;
++				#size-cells = <2>;
++				interrupt-names = "intx";
++				interrupts-extended = <&gic GIC_SPI 29 IRQ_TYPE_LEVEL_HIGH>;
++				#interrupt-cells = <1>;
++				ranges = <0x82000000 0 0 0x82000000 0x1 0 1 0
++					  0x81000000 0 0 0x81000000 0x1 0 1 0>;
++				bus-range = <0x00 0xff>;
++				interrupt-map-mask = <0 0 0 7>;
++				interrupt-map = <0 0 0 1 &pcie1_intc 0>,
++						<0 0 0 2 &pcie1_intc 1>,
++						<0 0 0 3 &pcie1_intc 2>,
++						<0 0 0 4 &pcie1_intc 3>;
++				marvell,pcie-port = <0>;
++				marvell,pcie-lane = <0>;
++				clocks = <&gateclk 8>;
++				status = "disabled";
++
++				pcie1_intc: interrupt-controller {
++					interrupt-controller;
++					#interrupt-cells = <1>;
++				};
++			};
++
++			/* x1 port */
++			pcie@2,0 {
++				device_type = "pci";
++				assigned-addresses = <0x82001000 0 0x40000 0 0x2000>;
++				reg = <0x1000 0 0 0 0>;
++				#address-cells = <3>;
++				#size-cells = <2>;
++				interrupt-names = "intx";
++				interrupts-extended = <&gic GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>;
++				#interrupt-cells = <1>;
++				ranges = <0x82000000 0 0 0x82000000 0x2 0 1 0
++					  0x81000000 0 0 0x81000000 0x2 0 1 0>;
++				bus-range = <0x00 0xff>;
++				interrupt-map-mask = <0 0 0 7>;
++				interrupt-map = <0 0 0 1 &pcie2_intc 0>,
++						<0 0 0 2 &pcie2_intc 1>,
++						<0 0 0 3 &pcie2_intc 2>,
++						<0 0 0 4 &pcie2_intc 3>;
++				marvell,pcie-port = <1>;
++				marvell,pcie-lane = <0>;
++				clocks = <&gateclk 5>;
++				status = "disabled";
++
++				pcie2_intc: interrupt-controller {
++					interrupt-controller;
++					#interrupt-cells = <1>;
++				};
++			};
++
++			/* x1 port */
++			pcie@3,0 {
++				device_type = "pci";
++				assigned-addresses = <0x82001800 0 0x44000 0 0x2000>;
++				reg = <0x1800 0 0 0 0>;
++				#address-cells = <3>;
++				#size-cells = <2>;
++				interrupt-names = "intx";
++				interrupts-extended = <&gic GIC_SPI 70 IRQ_TYPE_LEVEL_HIGH>;
++				#interrupt-cells = <1>;
++				ranges = <0x82000000 0 0 0x82000000 0x3 0 1 0
++					  0x81000000 0 0 0x81000000 0x3 0 1 0>;
++				bus-range = <0x00 0xff>;
++				interrupt-map-mask = <0 0 0 7>;
++				interrupt-map = <0 0 0 1 &pcie3_intc 0>,
++						<0 0 0 2 &pcie3_intc 1>,
++						<0 0 0 3 &pcie3_intc 2>,
++						<0 0 0 4 &pcie3_intc 3>;
++				marvell,pcie-port = <2>;
++				marvell,pcie-lane = <0>;
++				clocks = <&gateclk 6>;
++				status = "disabled";
++
++				pcie3_intc: interrupt-controller {
++					interrupt-controller;
++					#interrupt-cells = <1>;
++				};
++			};
++		};
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-380-zyxel-nas326.dts b/arch/arm/boot/dts/marvell/armada-380-zyxel-nas326.dts
+--- a/arch/arm/boot/dts/marvell/armada-380-zyxel-nas326.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-380-zyxel-nas326.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,437 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/*
++ * Device Tree file for Zyxel NAS326 board
++ *
++ *  Copyright (C) 2017-2018 Tony Dinh <mibodhi@gmail.com>
++ *                          Taras Ivaniukovich <rr-m@rr-m.org>
++ *                          Henrik Andersson <henrik.4e@gmail.com>
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-380.dtsi"
++
++/ {
++	model = "Zyxel NAS326";
++	compatible = "zyxel,nas326", "marvell,armada380", "marvell,armada38x";
++
++	aliases {
++		ethernet0 = &eth0;
++		serial0 = &uart0;
++	};
++
++	chosen {
++		bootargs = "console=ttyS0,115200";
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x20000000>; /* 512 MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000	/* CESA0: PHYS=0xf1100000
++									   size 64K */
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000>;	/* CESA1: PHYS=0xf1110000
++									   size 64K */
++
++		internal-regs {
++			ethernet@70000 {
++				pinctrl-0 = <&ge0_rgmii_pins>;
++				pinctrl-names = "default";
++				status = "okay";
++				phy = <&phy1>;
++				phy-mode = "rgmii-id";
++			};
++
++			i2c0: i2c@11000 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			i2c1: i2c@11100 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			sata@a8000 {
++				status = "okay";
++			};
++
++
++			sdhci@d8000 {
++				broken-cd;
++				wp-inverted;
++				bus-width = <8>;
++				status = "okay";
++			};
++
++			serial@12000 {
++				status = "okay";
++			};
++
++			usb@58000 {
++				  status = "okay";
++			};
++			
++			usb3@f0000 {
++				   status = "okay";
++			};
++
++			usb3@f8000 {
++				   status = "okay";
++			};
++
++			crypto@9D000 {
++				status = "okay";
++			};
++
++			pinctrl@18000 {
++				pinctrl-names = "default";
++
++				pmx_power_button: pmx_power-button {
++					marvell,pins = "mpp46";
++					marvell,function = "gpio";
++				};
++
++				pmx_copy_button: pmx_copy-button {
++					marvell,pins = "mpp39";
++					marvell,function = "gpio";
++				};
++				
++				pmx_reset_button: pmx_reset-button {
++					marvell,pins = "mpp49";
++					marvell,function = "gpio";
++				};
++
++				pmx_sata1_white_led: pmx_sata1_white_led {
++					marvell,pins = "mpp50";
++					marvell,function = "gpio";
++				};
++
++				pmx_sata1_red_led: pmx_sata1_red_led {
++					marvell,pins = "mpp48";
++					marvell,function = "gpio";
++				};
++
++				pmx_sata2_white_led: pmx_sata2_white_led {
++					marvell,pins = "mpp53";
++					marvell,function = "gpio";
++				};
++	
++				pmx_sata2_red_led: pmx_sata2_red_led {
++				        marvell,pins = "mpp54";
++					marvell,function = "gpio";
++				};
++	
++			        pmx_sys_white_led: pmx_sys_white_led {
++					marvell,pins = "mpp52";
++					marvell,function = "gpio";
++				};
++
++			        pmx_sys_red_led: pmx_sys_red_led {
++					marvell,pins = "mpp55";
++					marvell,function = "gpio";
++				};
++
++				pmx_usb_white_led: pmx_usb_white_led {
++					marvell,pins = "mpp21";
++					marvell,function = "gpio";
++				};
++
++				pmx_copy_white_led: pmx_copy_white_led {
++					marvell,pins = "mpp26";
++					marvell,function = "gpio";
++				};
++				
++				pmx_copy_red_led: pmx_copy_red_led {
++					marvell,pins = "mpp37";
++					marvell,function = "gpio";
++				};
++				
++				pmx_buzzer: pmx_buzzer {
++					marvell,pins = "mpp19";
++					marvell,function = "gpio";
++				};
++	                        
++				pmx_pwr_off: pmx-pwr-off {
++		                        marvell,pins = "mpp20";
++			                marvell,function = "gpio";
++				};
++				
++			};
++
++		};
++
++		pcie-controller {
++			status = "okay";
++			/*
++			 * The two PCIe units are accessible through
++			 * standard PCIe slots on the board.
++			 */
++			pcie@1,0 {
++				/* Port 0, Lane 0 */
++				status = "okay";
++			};
++			pcie@2,0 {
++				/* Port 1, Lane 0 */
++				status = "okay";
++			};
++		};
++		
++	};
++
++	usb2_phy: usb2_phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&usb2_power>;
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-0 = <&pmx_power_button &pmx_copy_button &pmx_reset_button>;
++		pinctrl-names = "default";
++
++		button@1 {
++			label = "Power Button";
++			linux,code = <KEY_POWER>;
++			gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
++		};
++
++		button@2 {
++			label = "Copy Button";
++			linux,code = <KEY_COPY>;
++			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
++		};
++
++		button@3 {
++			label = "Reset Button";
++			linux,code = <KEY_RESTART>;
++			gpios = <&gpio1 17 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-0 = <&pmx_sata1_white_led 
++				&pmx_sata1_red_led 
++				&pmx_sata2_white_led				
++				&pmx_sata2_red_led
++				&pmx_sys_white_led
++				&pmx_sys_red_led
++				&pmx_usb_white_led>;
++
++		pinctrl-names = "default";
++
++		white_sata1 {
++			label = "nsa326:white:sata1";
++			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
++                        linux,default-trigger = "ide-disk1";
++		};
++
++		red_sata1 {
++			label = "nsa326:red:sata1";
++			gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++		};
++
++		white-sata2 {
++			label = "nsa326:white:sata2";
++			gpios = <&gpio1 21 GPIO_ACTIVE_HIGH>;
++		};
++		
++		red-sata2 {                       
++			label = "nsa326:red:sata2";
++			gpios = <&gpio1 22 GPIO_ACTIVE_HIGH>;
++		};
++
++		white-usb {
++			label = "nsa326:white:usb";
++			gpios = <&gpio0 21 GPIO_ACTIVE_HIGH>;
++                        linux,default-trigger = "usb-host";
++		};
++
++		white-sys {
++			label = "nsa326:white:sys";
++			gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "default-on";
++		};
++
++                red-sys {
++                        label = "nsa326:red:sys";
++                        gpios = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++                };
++
++                white-copy {
++                        label = "nsa326:white:copy";
++                        gpios = <&gpio0 26 GPIO_ACTIVE_HIGH>;
++                };
++
++                red-copy {
++                        label = "nsa326:red:copy";
++                        gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
++                };
++	};
++
++	regulators {
++                compatible = "simple-bus";
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                usb2_power: regulator@1 {
++                        compatible = "regulator-fixed";
++                        reg = <1>;
++                        regulator-name = "USB2 Power";
++                        regulator-min-microvolt = <5000000>;
++                        regulator-max-microvolt = <5000000>;
++                        enable-active-high;
++                        regulator-always-on;
++                        regulator-boot-on;
++                        gpio = <&gpio1 11 GPIO_ACTIVE_HIGH>;
++                };
++
++		reg_sata0: regulator@2 {
++			compatible = "regulator-fixed";
++			regulator-name = "pwr_en_sata0";
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio1 13 GPIO_ACTIVE_HIGH>;
++		};
++
++		reg_5v_sata0: v5-sata0 {
++			compatible = "regulator-fixed";
++			regulator-name = "v5.0-sata0";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			vin-supply = <&reg_sata0>;
++		};
++
++		reg_12v_sata0: v12-sata0 {
++			compatible = "regulator-fixed";
++			regulator-name = "v12.0-sata0";
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			vin-supply = <&reg_sata0>;
++		};
++
++		reg_sata1: regulator@3 {
++			regulator-name = "pwr_en_sata1";
++			compatible = "regulator-fixed";
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio0 29 GPIO_ACTIVE_HIGH>;
++		};
++
++		reg_5v_sata1: v5-sata1 {
++			compatible = "regulator-fixed";
++			regulator-name = "v5.0-sata1";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			vin-supply = <&reg_sata1>;
++		};
++
++		reg_12v_sata1: v12-sata1 {
++			compatible = "regulator-fixed";
++			regulator-name = "v12.0-sata1";
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			vin-supply = <&reg_sata1>;
++		};
++
++	};
++
++	gpio-poweroff {
++		compatible = "gpio-poweroff";
++                pinctrl-0 = <&pmx_pwr_off>;
++                pinctrl-names = "default";
++		gpios = <&gpio0 20  GPIO_ACTIVE_HIGH>;
++	};
++
++};
++
++&mdio {
++	pinctrl-0 = <&mdio_pins>;
++	pinctrl-names = "default";
++	
++	phy1: ethernet-phy@1 {
++                marvell,reg-init = <0x1 0x16 0x0 0x3>,
++				<0x1 0x10 0x0 0x1817>,
++				<0x1 0x11 0x0 0x442a>,
++				<0x1 0x16 0x0 0x0>,
++				<0x1 0x0 0x0 0x1140>,
++				<0x1 0x4 0x0 0x1e1>,
++				<0x1 0x10 0x0 0x3860>,
++				<0x1 0x0 0x0 0x9140>;
++		reg = <1>;
++	};
++
++};
++&nand_controller {
++	status = "okay";
++
++	nand@0 {
++		status = "okay";
++		reg = <0>;
++		label = "pxa3xx_nand-0";
++		nand-rb = <0>;
++		marvell,nand-keep-config;
++		nand-on-flash-bbt;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "U-Boot";
++				reg = <0x00000000 0x00200000>;	/*   2 MB */
++			};
++
++			partition@200000 {
++				label = "U-Boot env";
++				reg = <0x00200000 0x00200000>;	/*   2 MB */
++			};
++
++			partition@400000 {
++				label = "Config";
++				reg = <0x00400000 0x00A00000>;	/*  10 MB */
++			};
++
++			partition@600000 {
++				label = "Kernel-1";
++				reg = <0x00E00000 0x00F00000>;	/*  15 MB */
++			};
++
++			partition@1500000 {
++				label = "RootFS-1";
++				reg = <0x01D00000 0x06A00000>;	/* 106 MB */
++			};
++
++			partition@8300000 {
++				label = "Kernel-2";
++				reg = <0x08700000 0x00F00000>;	/*  15 MB */
++			};
++
++			partition@9200000 {
++				label = "RootFS-2";
++				reg = <0x09600000 0x06A00000>;	/* 106 MB */
++			};
++		};
++	};
++};
++
++&uart0 {
++	status = "okay";
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-linksys-caiman.dts b/arch/arm/boot/dts/marvell/armada-385-linksys-caiman.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-linksys-caiman.dts	2026-08-19 09:20:32.000000000 -0700
++++ b/arch/arm/boot/dts/marvell/armada-385-linksys-caiman.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -142,3 +142,6 @@
+ 		};
+ 	};
+ };
++&rtc {
++	status = "okay";
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-synology-ds216.dts b/arch/arm/boot/dts/marvell/armada-385-synology-ds216.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-synology-ds216.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-385-synology-ds216.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,471 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * Device Tree file for Synology DS216 NAS
++ *  
++ * Copyright (C) 2024 Robin DUBREUIL <robin@dubreuil.pro>
++ *
++ * Based on:
++ *
++ * Device Tree file for Thecus N2350 board
++ *    Copyright (C) 2018-2023 Tony Dinh <mibodhi@gmail.com>
++ *    Copyright (C) 2018 Manuel Jung <manuel.jung@hotmail.com>
++ * Device Tree file for Synology DS116 NAS
++ *    Copyright (C) 2017 Willy Tarreau <w@1wt.eu>
++ */
++
++/dts-v1/;
++#include <dt-bindings/leds/common.h>
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-385.dtsi"
++
++/ {
++	model = "Synology DS216";
++	compatible = "synology,ds216", "marvell,armada385";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x20000000>; // 512MB
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000>;
++		
++		internal-regs {
++			/* A PIC16F1829 is connected to uart1 at 9600 bps,
++			* and takes single-character orders :
++			*   "1" : power off // already handled by the poweroff node
++			*   "2" : short beep
++			*   "3" : long beep
++			*   "4" : turn the power LED ON
++			*   "5" : flash the power LED
++			*   "6" : turn the power LED OFF
++			*   "7" : turn the status LED OFF
++			*   "8" : turn the status LED ON
++			*   "9" : flash the status LED
++			*   "A" : flash the motherboard LED
++			*   "B" : turn the motherboard LED OFF
++			*   "C" : hard reset
++			*
++			* More commands do exist. For example some are related to fan
++			* control, others can schedule boot. Details could probably be
++			* found somewhere in the Synology GPL tarballs.
++			*/
++			poweroff@12100 {
++				compatible = "synology,power-off";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++			};
++		};
++	};
++
++    ehci_phy: ehci-phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_ehci_vbus0>;
++		 #phy-cells = <0>;
++	};
++
++    xhci_phy: xhci-phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_xhci_vbus0>;
++		 #phy-cells = <0>;
++	};
++
++    keys {
++		compatible = "gpio-keys";
++		pinctrl-0 = <&pmx_copy_button>;
++		pinctrl-names = "default";
++
++		button-0 {
++			label = "copy-button";
++			linux,code = <KEY_COPY>;
++			gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
++		};
++	};
++
++    leds {
++		compatible = "gpio-leds";
++		pinctrl-0 = <&pmx_enable_all_leds
++					&pmx_enable_disk_leds
++					&pmx_enable_phy_led
++					&pmx_disk1_orange_led
++					&pmx_disk2_orange_led>;
++
++		pinctrl-names = "default";
++
++		/* Dummy LED that controls all light sources */
++		led-0 {
++			function = "enable-all";
++			color = <LED_COLOR_ID_MULTI>;
++			default-state = "on";
++			gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
++		};
++
++		/* Dummy LED that controls all disk light sources */
++		led-1 {
++			function = "enable-disk";
++			color = <LED_COLOR_ID_MULTI>;
++			default-state = "on";
++			gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-2 {
++			function = LED_FUNCTION_LAN;
++			color = <LED_COLOR_ID_GREEN>;
++			default-state = "on";
++			gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
++		};
++
++		/*
++		 * Enabling any of the following orange LEDs will disable
++		 * the green disk activity LED it shares the indicator with.
++		 */
++		led-3 {
++			function = LED_FUNCTION_DISK_ERR;
++			color = <LED_COLOR_ID_AMBER>;
++			function-enumerator = <1>;
++			default-state = "off";
++			gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-4 {
++			function = LED_FUNCTION_DISK_ERR;
++			color = <LED_COLOR_ID_AMBER>;
++			function-enumerator = <2>;
++			default-state = "off";
++			gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++    fan {
++		compatible = "gpio-fan";
++	    gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>,
++			    <&gpio1 5 GPIO_ACTIVE_HIGH>,
++			    <&gpio0 15 GPIO_ACTIVE_HIGH>;
++		gpio-fan,speed-map = <   0 0
++					      1500 1
++					      2500 2
++					      3000 3
++					      3400 4
++					      3700 5
++					      3900 6
++					      4000 7>;
++		#cooling-cells = <2>;
++	};
++	
++    reg_ehci_vbus0: ehci-vbus0 {
++		compatible = "regulator-fixed";
++		regulator-name = "ehci-vbus0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 15 GPIO_ACTIVE_HIGH>;
++	};
++
++    reg_xhci_vbus0: xhci-vbus0 {
++		compatible = "regulator-fixed";
++		regulator-name = "xhci-vbus0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_sata0: pwr-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio0 26 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata0: v5-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_12v_sata0: v12-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_sata1: pwr-sata1 {
++		regulator-name = "pwr_en_sata1";
++		compatible = "regulator-fixed";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio0 27 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata1: v5-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata1";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata1>;
++	};
++
++	reg_12v_sata1: v12-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata1>;
++	};
++};
++
++&ahci0 {
++	status = "okay";
++};
++
++&bm {
++	status = "okay";
++};
++
++&bm_bppi {
++	status = "okay";
++};
++
++&eth0 {
++	status = "okay";
++	phy = <&phy0>;
++	phy-mode = "sgmii";
++	buffer-manager = <&bm>;
++	bm,pool-long = <0>;
++	bm,pool-short = <1>;
++};
++
++&mdio {
++	phy0: ethernet-phy@1 {
++		reg = <1>;
++	};
++};
++
++&gpio0 {
++	gpio-line-names = "", "", "", "", "", "", "Copy button", "",
++					  "", "Enable disk LEDs", "", "", "Model ID 0", "Disk1 fault LED", "Disk2 fault LED", "Fan high",
++					  "Enable PHY LED", "", "", "", "", "Model ID 1", "", "",
++					  "", "", "Enable disk1 power", "Enable disk2 power", "", "", "", "";
++};
++
++&gpio1 {
++	gpio-line-names = "", "", "", "", "", "Fan mid", "Fan low", "Disk1 absent",
++					  "Disk2 absent", "XHCI overcurrent", "Enable all LEDs", "EHCI overcurrent", "Enable XHCI power", "Model ID 2", "SD card detect", "Enable EHCI power",
++					  "", "", "", "", "", "", "", "",
++					  "", "", "", "", "", "", "", "";
++};
++
++&pinctrl {
++	pinctrl-names = "default";
++
++    /* use only one pin for UART1, as mpp20 is used by sata0 */
++	uart1_pins: uart-pins-1 {
++		marvell,pins = "mpp19";
++		marvell,function = "ua1";
++	};
++    
++    pmx_model_id0: pmx-model-id0 {
++		marvell,pins = "mpp12";
++		marvell,function = "gpio";
++	};
++
++    pmx_model_id1: pmx-model-id1 {
++		marvell,pins = "mpp21";
++		marvell,function = "gpio";
++	};
++
++    pmx_model_id2: pmx-model-id2 {
++		marvell,pins = "mpp45";
++		marvell,function = "gpio";
++	};
++
++    pmx_disk1_present: pmx-disk1-present {
++		marvell,pins = "mpp39";
++		marvell,function = "gpio";
++	};
++    
++    pmx_disk2_present: pmx-disk2-present {
++		marvell,pins = "mpp40";
++		marvell,function = "gpio";
++	};
++
++    pmx_ehci_overcurrent: pmx-ehci-overcurrent {
++		marvell,pins = "mpp43";
++		marvell,function = "gpio";
++	};
++
++    pmx_xhci_overcurrent: pmx-xhci-overcurrent {
++		marvell,pins = "mpp41";
++		marvell,function = "gpio";
++	};
++
++	pmx_copy_button: pmx-copy-button {
++		marvell,pins = "mpp6";
++		marvell,function = "gpio";
++	};
++
++    pmx_enable_all_leds: pmx-enable-all-leds {
++		marvell,pins = "mpp42";
++		marvell,function = "gpio";
++	};
++
++    pmx_enable_disk_leds: pmx-enable-disk-leds {
++		marvell,pins = "mpp9";
++		marvell,function = "gpio";
++	};
++
++    pmx_enable_phy_led: pmx-enable-phy-led {
++		marvell,pins = "mpp16";
++		marvell,function = "gpio";
++	};
++
++    pmx_disk1_orange_led: pmx-disk1-orange-led {
++		marvell,pins = "mpp13";
++		marvell,function = "gpio";
++	};
++
++    pmx_disk2_orange_led: pmx-disk2-orange-led {
++		marvell,pins = "mpp14";
++		marvell,function = "gpio";
++	};
++};
++
++/*
++ * The DS216 mainboard exposes a footprint for a full-size SD
++ * card socket. If you successfully soldered one, you can try to
++ * enable it's interface by uncommenting the following untested code.
++ * Even though most required components seems in place, some may be
++ * missing for the interface to function properly.
++ * Please leave feedback at forum.doozan.com.
++ */
++/*
++&sdhci {
++	cd-gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
++	wp-inverted;
++	bus-width = <8>;
++	status = "okay";
++	no-1-8-v;
++};
++*/
++
++/*
++ * Even though the MVEBU RTC clock works fine on the DS216, the
++ * board is designed to use a dedicated SEIKO S35390A I2C RTC chip.
++ * Only the SEIKO RTC can wake the system.
++ */
++&rtc {
++	status = "disabled";
++};
++
++&i2c0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++	status = "okay";
++	clock-frequency = <400000>;
++
++	s35390a: s35390a@30 {
++    	compatible = "sii,s35390a";
++		reg = <0x30>;
++	};
++};
++
++&spi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins>;
++	status = "okay";
++
++	/* SPI: 8MB (64Mb) Flash Micron N25Q064A 
++     * Supports 108MHz clock using fast-read.
++	 */
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "micron,n25q064", "jedec,spi-nor";
++		reg = <0>;
++
++		spi-max-frequency = <108000000>;
++        m25p,fast-read;
++
++		/* Make sure no mtdparts bootarg is passed to the
++		 * kernel if you wish to use the following stock
++		 * partition scheme.
++		 */
++		partition@0 {
++			label = "RedBoot";
++			reg = <0x00000000 0x000f0000>;
++			read-only;
++		};
++	
++		partition@c0000 {
++			label = "zImage";
++			reg = <0x000f0000 0x002d0000>;
++		};
++	
++		partition@390000 {
++		label = "rd.gz";
++			reg = <0x003c0000 0x00410000>;
++		};
++	
++		partition@7d0000 {
++			label = "vendor";
++			reg = <0x007d0000 0x00010000>;
++			read-only;
++		};
++	
++		partition@7e0000 {
++			label = "RedBoot config";
++			reg = <0x007e0000 0x00010000>;
++			read-only;
++		};
++
++		partition@7f0000 {
++			label = "FIS directory";
++			reg = <0x007f0000 0x00010000>;
++			read-only;
++		};
++	};
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&uart1 {
++	status = "okay";
++};
++
++&usb0 {
++	status = "okay";
++};
++
++&usb3_0 {
++	status = "okay";
++};
++
++&usb3_1 {
++	status = "okay";
++};
+\ No newline at end of file
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-synology-ds216j.dts b/arch/arm/boot/dts/marvell/armada-385-synology-ds216j.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-synology-ds216j.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-385-synology-ds216j.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,610 @@
++/*
++ * Device Tree file for Synology DS216j NAS
++ *
++ * Copyright (C) 2026 Alexei Evdokimenko <aevdokimenkosd@gmail.com>
++ *
++ * Based on Device Tree files for:
++ *  - Synology DS216 NAS, by Robin DUBREUIL <robin@dubreuil.pro>
++ *  - Synology DS116 NAS, by Willy Tarreau <w@1wt.eu>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++/dts-v1/;
++#include "armada-385.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/leds/common.h>
++#include <dt-bindings/input/input.h>
++
++/ {
++	model = "Synology DS216j";
++	compatible = "synology,DS216j", "marvell,a385-gp", "marvell,armada385",
++		     "marvell,armada380";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	aliases {
++		ethernet0 = &eth0;
++		egiga0 = &eth0;
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0x00000000 0x20000000>; /* 512 MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000>;
++
++		internal-regs {
++			poweroff@12100 {
++				compatible = "synology,power-off";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++			};
++		};
++
++		gpio-fan@0 {
++			compatible = "gpio-fan";
++			pinctrl-0 = <&fan_ctrl_low_pins
++				     &fan_ctrl_mid_pins
++				     &fan_ctrl_high_pins>;
++			pinctrl-names = "default";
++			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>,
++				<&gpio1 17 GPIO_ACTIVE_HIGH>,
++				<&gpio1 16 GPIO_ACTIVE_HIGH>;
++			reg = <0x0 0x0 0x0>;
++
++			/*
++			 * WARNING! This binding causes systemd to consume a lot
++			 * of CPU time. You must understand why you are
++			 * uncommenting this line.
++			 */
++			//alarm-gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>;
++
++			/* This speed map must be adapted to your fan model. */
++			gpio-fan,speed-map = <   0 0>,
++					     < 400 1>,
++					     < 900 2>,
++					     <1300 3>,
++					     <1700 4>,
++					     <2100 5>,
++					     <2500 6>,
++					     <3000 7>;
++			#cooling-cells = <2>;
++		};
++
++		/*
++		 * NOTE: the LAN LED is defined not in this section, but below
++		 * in the MDIO, because it is controlled directly from the PHY.
++		 */
++		gpio-leds@1 {
++			compatible = "gpio-leds";
++			pinctrl-0 = <&led_green_disk1_pins
++				     &led_green_disk2_pins
++				     &led_amber_disk1_pins
++				     &led_amber_disk2_pins>;
++			pinctrl-names = "default";
++			reg = <0x0 0x1 0x0>;
++
++			/*
++			 * The green LEDs for the disks were not accessible in
++			 * the original device trees because pins 19 and 20
++			 * were defined for UART1 and AHCI0. These pins are
++			 * actually connected to a controller that drives the
++			 * LEDs (at least in the DS216j model). Synology's GPL
++			 * source code (see "pinctrl-armada-38x.c") hints that
++			 * UART1 can be moved to pins 17 and 18, and AHCI0 to
++			 * pin 21, so pins 19 and 20 can be freed up to access
++			 * the LEDs.
++			 *
++			 * NOTE: Synology's "pinctrl-armada-38x.c" file differs
++			 * from the one that comes with a modern Linux kernel.
++			 *
++			 * The config below reproduces the Synology's default
++			 * behavior. The LEDs turn on when the disks are powered
++			 * on at boot. The LEDs then blink during read/write
++			 * activity. When the hd-idle service puts the disks
++			 * into standby mode, the LEDs turn off. When the disks
++			 * resume from standby, the LEDs turn on again.
++			 *
++			 * NOTE: an additional systemd unit is required to turn
++			 * on/off the LEDs for hd-idle events. For details,
++			 * see https://github.com/ae9o/diskstation-ledd
++			 */
++
++			led-green-disk1 {
++				label = "ds216j:green:disk1";
++				function = LED_FUNCTION_DISK;
++				color = <LED_COLOR_ID_GREEN>;
++				gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
++				linux,default-trigger = "ide-disk1";
++				default-state = "keep";
++			};
++
++			led-green-disk2 {
++				label = "ds216j:green:disk2";
++				function = LED_FUNCTION_DISK;
++				color = <LED_COLOR_ID_GREEN>;
++				gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
++				linux,default-trigger = "ide-disk2";
++				default-state = "keep";
++			};
++
++			led-amber-disk1-err {
++				label = "ds216j:amber:disk1-err";
++				function = LED_FUNCTION_DISK_ERR;
++				color = <LED_COLOR_ID_AMBER>;
++				gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
++				default-state = "off";
++			};
++
++			led-amber-disk2-err {
++				label = "ds216j:amber:disk2-err";
++				function = LED_FUNCTION_DISK_ERR;
++				color = <LED_COLOR_ID_AMBER>;
++				gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
++				default-state = "off";
++			};
++		};
++	};
++
++	usb-xhci-phy0 {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_5v_usb0>;
++		#phy-cells = <0>;
++	};
++
++	usb-xhci-phy1 {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_5v_usb1>;
++		#phy-cells = <0>;
++	};
++
++	reg_5v_usb0: reg-5v-usb0 {
++		compatible = "regulator-fixed";
++		pinctrl-names = "default";
++		pinctrl-0 = <&reg_5v_usb0_pins>;
++		regulator-name = "reg_5v_usb0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 26 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_usb1: reg-5v-usb1 {
++		compatible = "regulator-fixed";
++		pinctrl-names = "default";
++		pinctrl-0 = <&reg_5v_usb1_pins>;
++		regulator-name = "reg_5v_usb1";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 27 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_sata0: reg-sata0 {
++		compatible = "regulator-fixed";
++		pinctrl-names = "default";
++		pinctrl-0 = <&reg_sata0_pins>;
++		regulator-name = "reg_sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		startup-delay-us = <5000000>;
++		gpio = <&gpio0 15 GPIO_ACTIVE_HIGH>;
++		regulator-state-mem {
++			regulator-off-in-suspend;
++		};
++	};
++
++	reg_5v_sata0: reg-5v-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "reg_5v_sata0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_12v_sata0: reg-12v-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "reg_12v_sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_sata1: reg_sata1 {
++		compatible = "regulator-fixed";
++		pinctrl-names = "default";
++		pinctrl-0 = <&reg_sata1_pins>;
++		regulator-name = "reg_sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		startup-delay-us = <5000000>;
++		gpio = <&gpio0 16 GPIO_ACTIVE_HIGH>;
++		regulator-state-mem {
++			regulator-off-in-suspend;
++		};
++	};
++
++	reg_5v_sata1: reg-5v-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "reg_5v_sata1";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata1>;
++	};
++
++	reg_12v_sata1: reg-12v-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "reg_12v_sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata1>;
++	};
++};
++
++&i2c0 {
++	status = "okay";
++	clock-frequency = <100000>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c0_pins>;
++
++	/*
++	 * Digital potentiometer TI TPL0401A controls LED brightness.
++	 * To adjust it, use the following command:
++	 *
++	 *   # Unlock brightness control.
++	 *   i2cset -y -f 0 0x2e 0xff 0xff
++	 *
++	 *   # Use a value from the range [0..127] (lower is brighter).
++	 *   echo 40 > /sys/bus/iio/devices/iio:device0/out_resistance0_raw
++	 *
++	 * Although any value can be selected from the [0..127] range in
++	 * increments of 1, only certain values ​​actually change the LED
++	 * brightness. For example: 0, 39, 40, 127.
++	 */
++	tpl0401a@2e {
++		compatible = "ti,tpl0401-103";
++		reg = <0x2e>;
++	};
++};
++
++&uart0 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart0_pins>;
++};
++
++&uart1 {
++	/*
++	 * A PIC16F1829 is connected to UART1 at 9600 bps, and takes
++	 * single-character orders:
++	 *   "1" : power off // already handled by the poweroff node
++	 *   "2" : short beep
++	 *   "3" : long beep
++	 *   "4" : turn the power LED ON
++	 *   "5" : flash the power LED
++	 *   "6" : turn the power LED OFF
++	 *   "7" : turn the status LED OFF
++	 *   "8" : turn the status LED ON
++	 *   "9" : flash the status LED
++	 *   "A" : flash the motherboard LED (D8)
++	 *   "B" : turn the motherboard LED OFF
++	 *   "C" : hard reset
++	 *
++	 * In addition, UART1 is used to receive single-character messages
++	 * from the PIC16F1829 indicating that the power/reset buttons on
++	 * the device chassis have been pressed. In the original Sinology
++	 * DSM OS, the "scemd" daemon, whose code is not licensed under the
++	 * GPL, is responsible for handling these messages.
++	 *
++	 * It is important to specify the correct pins for this device,
++	 * otherwise messages will not arrive.
++	 *
++	 * Here's an example of how these messages can be processed using bash:
++	 *
++	 *   # Read one byte from UART1.
++	 *   LANG=C IFS= read -r -d '' -n 1 message < /dev/ttyS1
++	 *
++	 *   case $message in
++	 *     $'\x30')
++	 *       echo "Poweroff pressed"
++	 *       poweroff
++	 *       ;;
++	 *     $'\x61')
++	 *       echo "Reset pressed"
++	 *       echo C > /dev/ttyS1
++	 *       ;;
++	 *   esac
++	 *
++	 * For details, see https://github.com/ae9o/diskstation-keyd
++	 */
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart1_pins>;
++};
++
++&eth0 {
++	status = "okay";
++	phy-handle = <&ethphy0>;
++	phy-mode = "sgmii";
++	buffer-manager = <&bm>;
++	bm,pool-long = <0>;
++	bm,pool-short = <1>;
++	max-speed = <1000>;
++};
++
++&mdio {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&mdio_pins>;
++
++	ethphy0: ethernet-phy@1 {
++		compatible = "ethernet-phy-ieee802.3-c22";
++		reg = <1>;
++		max-speed = <1000>;
++
++		/*
++		 * This LED cannot be listed in the "gpio-leds" section because
++		 * it is controlled directly from the PHY.
++		 */
++		leds {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			led-green-lan@0 {
++				reg = <0>;
++				color = <LED_COLOR_ID_GREEN>;
++				function = LED_FUNCTION_LAN;
++				default-state = "keep";
++
++				/*
++				 * This trigger requires additional
++				 * configuration after the NAS boots.
++				 *
++				 * Add these lines to the "/etc/rc.local" file:
++				 *
++				 *   LED="/sys/class/leds/f1072004.mdio-mii:01:green:lan"
++				 *   echo 1 > $LED/link
++				 *   echo 1 > $LED/tx
++				 *   echo 1 > $LED/rx
++				 *   echo end0 > $LED/device_name
++				 *
++				 * WARNING! For older distros, you may need to
++				 * use "eth0" instead of "end0" as the device
++				 * name.
++				 *
++				 * WARNING! DO NOT "echo netdev > trigger" in
++				 * the "/etc/rc.local" file. Leave this
++				 * assignment in the DTS. Otherwise, trigger
++				 * won't work as intended.
++				 */
++				linux,default-trigger = "netdev";
++			};
++		};
++	};
++};
++
++&ahci0 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&ahci0_pins>;
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	sata-port@0 {
++		reg = <0>;
++		target-supply = <&reg_5v_sata0>;
++	};
++
++	sata-port@1 {
++		reg = <1>;
++		target-supply = <&reg_5v_sata1>;
++	};
++};
++
++/*
++ * There is no SEIKO RTC chip in the DS216j model.
++ * The device uses the built-in MVEBU RTC.
++ */
++&rtc {
++	status = "okay";
++};
++
++&bm {
++	status = "okay";
++};
++
++&bm_bppi {
++	status = "okay";
++};
++
++&usb3_0 {
++	status = "okay";
++};
++
++&usb3_1 {
++	status = "okay";
++};
++
++&spi0 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins>;
++
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "macronix,mx25l6405d", "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <50000000>;
++		m25p,fast-read;
++
++		/*
++		 * This is the default partiotion table for Synology DSM.
++		 *
++		 * NOTE: there is a redboot partition table despite u-boot
++		 * being used. The names presented here are the same as those
++		 * found in the FIS directory. There is also a small device
++		 * tree in the last 64kB of the RedBoot partition which is not
++		 * enumerated. The MAC address and the serial number are listed
++		 * in the "vendor" partition.
++		 */
++		partition@0 {
++			label = "RedBoot";
++			reg = <0x00000000 0x000f0000>;
++			read-only;
++		};
++
++		partition@c0000 {
++			label = "zImage";
++			reg = <0x000f0000 0x002d0000>;
++		};
++
++		partition@390000 {
++			label = "rd.gz";
++			reg = <0x003c0000 0x00410000>;
++		};
++
++		partition@7d0000 {
++			label = "vendor";
++			reg = <0x007d0000 0x00010000>;
++			read-only;
++		};
++
++		partition@7e0000 {
++			label = "RedBoot config";
++			reg = <0x007e0000 0x00010000>;
++			read-only;
++		};
++
++		partition@7f0000 {
++			label = "FIS directory";
++			reg = <0x007f0000 0x00010000>;
++			read-only;
++		};
++
++		/*
++		 * This partition table is used when installing Debian instead
++		 * of Synology DSM.
++		 */
++		//partition@0 { /* 896 KB */
++		//	label = "u-boot";
++		//	reg = <0x00000000 0x000e0000>;
++		//	read-only;
++		//};
++
++		//partition@e0000 { /* 64 KB */
++		//	label = "dtb";
++		//	reg = <0x000e0000 0x00010000>;
++		//	read-only;
++		//};
++
++		//partition@f0000 { /* 7104 KB */
++		//	label = "kernel";
++		//	reg = <0x000f0000 0x006f0000>;
++		//};
++
++		//partition@7d0000 { /* 128 KB */
++		//	label = "env";
++		//	reg = <0x007e0000 0x00020000>;
++		//	read-only;
++		//};
++	};
++};
++
++&pinctrl {
++	/*
++	 * To access the disks' green LEDs, pins 19 and 20 must be freed here.
++	 * Synology's GPL source code (see "pinctrl-armada-38x.c") contains a
++	 * hint that UART1 can be moved to pins 17 and 18. These pins are
++	 * vacant in the DS216j model. You may need to choose another pair for
++	 * a different DiskStation model.
++	 */
++	uart1_pins: uart-pins-1 {
++		marvell,pins = "mpp17", "mpp18";
++		marvell,function = "ua1";
++	};
++
++	led_amber_disk1_pins: led-pins-0 {
++		marvell,pins = "mpp13";
++		marvell,function = "gpio";
++	};
++
++	led_amber_disk2_pins: led-pins-1 {
++		marvell,pins = "mpp14";
++		marvell,function = "gpio";
++	};
++
++	reg_sata0_pins: reg-sata-pins-0 {
++		marvell,pins = "mpp15";
++		marvell,function = "gpio";
++	};
++
++	reg_sata1_pins: reg-sata-pins-1 {
++		marvell,pins = "mpp16";
++		marvell,function = "gpio";
++	};
++
++	led_green_disk2_pins: led-pins-2 {
++		marvell,pins = "mpp19";
++		marvell,function = "gpio";
++	};
++
++	led_green_disk1_pins: led-pins-3 {
++		marvell,pins = "mpp20";
++		marvell,function = "gpio";
++	};
++
++	/*
++	 * According to the Synology's "pinctrl-armada-38x.c" file, moving this
++	 * binding from pin 20 to pin 21 allows access to the disk's green LED.
++	 */
++	ahci0_pins: ahci-pins-0 {
++		marvell,pins = "mpp21";
++		marvell,function = "sata0";
++	};
++
++	fan_ctrl_high_pins: fan-ctrl-pins-0 {
++		marvell,pins = "mpp48";
++		marvell,function = "gpio";
++	};
++
++	fan_ctrl_mid_pins: fan-ctrl-pins-1 {
++		marvell,pins = "mpp49";
++		marvell,function = "gpio";
++	};
++
++	fan_ctrl_low_pins: fan-ctrl-pins-2 {
++		marvell,pins = "mpp50";
++		marvell,function = "gpio";
++	};
++
++	reg_5v_usb0_pins: reg-5v-usb-pins-0 {
++		marvell,pins = "mpp58";
++		marvell,function = "gpio";
++	};
++
++	reg_5v_usb1_pins: reg-5v-usb-pins-1 {
++		marvell,pins = "mpp59";
++		marvell,function = "gpio";
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-synology-ds218j.dts b/arch/arm/boot/dts/marvell/armada-385-synology-ds218j.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-synology-ds218j.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-385-synology-ds218j.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,367 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/*
++ * Device Tree file for Synology RS816 NAS
++ *  
++ * Copyright (C) 2023 bodhi <mibodhi@gmail.com>
++ *
++ * Based on
++ * Device Tree file for Synology DS116 NAS
++ *
++ * Copyright (C) 2017 Willy Tarreau <w@1wt.eu>
++ */
++
++/dts-v1/;
++#include "armada-385.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++
++/ {
++	model = "Synology DS218j";
++
++	compatible = "marvell,a385-gp", "marvell,armada385", "marvell,armada380";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++		bootargs = "console=ttyS0,115200 earlyprintk";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x20000000>; /* 512MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000>;
++
++		internal-regs {
++			i2c@11000 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&i2c0_pins>;
++				status = "okay";
++				clock-frequency = <100000>;
++
++				eeprom@57 {
++					compatible = "atmel,24c64";
++					reg = <0x57>;
++				};
++			};
++
++			serial@12000 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&uart0_pins>;
++				status = "okay";
++			};
++
++			serial@12100 {
++				/* A PIC16F1829 is connected to uart1 at 9600 bps,
++				 * and takes single-character orders :
++				 *   "1" : power off // already handled by the poweroff node
++				 *   "2" : short beep
++				 *   "3" : long beep
++				 *   "4" : turn the power LED ON
++				 *   "5" : flash the power LED
++				 *   "6" : turn the power LED OFF
++				 *   "7" : turn the status LED OFF
++				 *   "8" : turn the status LED ON
++				 *   "9" : flash the status LED
++				 *   "A" : flash the motherboard LED (D8)
++				 *   "B" : turn the motherboard LED OFF
++				 *   "C" : hard reset
++				 */
++				pinctrl-names = "default";
++				pinctrl-0 = <&uart1_pins>;
++				status = "okay";
++			};
++
++			poweroff@12100 {
++				compatible = "synology,power-off";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++			};
++
++			ethernet@70000 {
++				pinctrl-names = "default";
++				phy = <&phy0>;
++				phy-mode = "sgmii";
++				buffer-manager = <&bm>;
++				bm,pool-long = <0>;
++				status = "okay";
++			};
++
++			ethernet@34000 {
++				pinctrl-names = "default";
++				phy = <&phy1>;
++				phy-mode = "sgmii";
++				buffer-manager = <&bm>;
++				bm,pool-long = <0>;
++				status = "okay";
++			};
++
++
++			mdio@72004 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&mdio_pins>;
++
++				phy0: ethernet-phy@0 {
++					reg = <1>;
++				};
++
++				phy1: ethernet-phy@1 {
++					reg = <0>;
++				};
++			};
++
++			sata@a8000 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&sata0_pins>;
++				status = "okay";
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				sata0: sata-port@0 {
++					reg = <0>;
++					target-supply = <&reg_5v_sata0>;
++				};
++
++				sata1: sata-port@1 {
++					reg = <1>;
++					target-supply = <&reg_5v_sata1>;
++				};
++			};
++
++			bm@c8000 {
++				status = "okay";
++			};
++
++			usb3@f0000 {
++				usb-phy = <&usb3_0_phy>;
++				status = "okay";
++			};
++
++			usb3@f8000 {
++				usb-phy = <&usb3_1_phy>;
++				status = "okay";
++			};
++		};
++
++		bm-bppi {
++			status = "okay";
++		};
++
++		pcie {
++                        
++			status = "okay";
++
++			pcie@2,0 {
++				/* Port 1, Lane 0 */
++				status = "okay";
++			};
++			pcie@3,0 {
++				/* Port 2, Lane 0 */
++				status = "okay";
++			};
++			pcie@4,0 {
++				/* Port 3, Lane 0 */
++				status = "okay";
++			};
++
++
++		};
++
++	};
++
++	gpio-fan {
++			compatible = "gpio-fan";
++			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>,
++				<&gpio1 17 GPIO_ACTIVE_HIGH>,
++				<&gpio1 16 GPIO_ACTIVE_HIGH>;
++			gpio-fan,speed-map = <   0 0
++					      1500 1
++					      1750 2
++					      2500 3
++					      2600 4
++					      3100 5>;
++			#cooling-cells = <2>;
++		};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-0 = <&pmx_sata1_green_led>;
++
++		pinctrl-names = "default";
++
++		green_sata1 {
++			label = "rs816:green:sata1";
++			gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
++                        linux,default-trigger = "ide-disk1";
++		};
++	};
++
++	usb3_0_phy: usb3_0_phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_usb3_0_vbus>;
++		#phy-cells = <0>;
++	};
++
++	usb3_1_phy: usb3_1_phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_usb3_1_vbus>;
++		#phy-cells = <0>;
++	};
++
++	reg_usb3_0_vbus: usb3-vbus0 {
++		compatible = "regulator-fixed";
++		regulator-name = "usb3-vbus0";
++		pinctrl-names = "default";
++		pinctrl-0 = <&xhci0_vbus_pins>;
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		gpio = <&gpio1 26 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_usb3_1_vbus: usb3-vbus1 {
++		compatible = "regulator-fixed";
++		regulator-name = "usb3-vbus1";
++		pinctrl-names = "default";
++		pinctrl-0 = <&xhci1_vbus_pins>;
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		gpio = <&gpio1 27 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_sata0: pwr-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio0 15 GPIO_ACTIVE_HIGH>;
++	};
++	
++	reg_sata1: pwr-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 5 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata0: v5-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_12v_sata0: v12-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata0>;
++	};
++	
++	reg_5v_sata1: v5-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata1";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata1>;
++	};
++
++	reg_12v_sata1: v12-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata1>;
++	};
++};
++
++&spi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins>;
++	status = "okay";
++
++	spi-flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "macronix,mx25l6405d", "jedec,spi-nor";
++		reg = <0>; /* Chip select 0 */
++		spi-max-frequency = <50000000>;
++		m25p,fast-read;
++
++		/* Note: there is a redboot partition table despite u-boot
++		 * being used. The names presented here are the same as those
++		 * found in the FIS directory. There is also a small device
++		 * tree in the last 64kB of the RedBoot partition which is not
++		 * enumerated. The MAC address and the serial number are listed
++		 * in the "vendor" partition.
++		 */
++		partition@0 {
++			label = "RedBoot";
++			reg = <0x00000000 0x000f0000>;
++			read-only;
++		};
++
++		partition@c0000 {
++			label = "zImage";
++			reg = <0x000f0000 0x002d0000>;
++		};
++
++		partition@390000 {
++			label = "rd.gz";
++			reg = <0x003c0000 0x00410000>;
++		};
++
++		partition@7d0000 {
++			label = "vendor";
++			reg = <0x007d0000 0x00010000>;
++			read-only;
++		};
++
++		partition@7e0000 {
++			label = "RedBoot config";
++			reg = <0x007e0000 0x00010000>;
++			read-only;
++		};
++
++		partition@7f0000 {
++			label = "FIS directory";
++			reg = <0x007f0000 0x00010000>;
++			read-only;
++		};
++	};
++};
++
++&pinctrl {
++	/* use only one pin for UART1, as mpp20 is used by sata0 */
++	uart1_pins: uart-pins-1 {
++		marvell,pins = "mpp19";
++		marvell,function = "ua1";
++	};
++
++	xhci0_vbus_pins: xhci0_vbus_pins {
++		marvell,pins = "mpp58";
++		marvell,function = "gpio";
++	};
++	xhci1_vbus_pins: xhci1_vbus_pins {
++		marvell,pins = "mpp59";
++		marvell,function = "gpio";
++	};
++	pmx_sata1_green_led: pmx_sata1_green_led {
++		marvell,pins = "mpp6";
++		marvell,function = "gpio";
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-synology-rs816.dts b/arch/arm/boot/dts/marvell/armada-385-synology-rs816.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-synology-rs816.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-385-synology-rs816.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,367 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/*
++ * Device Tree file for Synology RS816 NAS
++ *  
++ * Copyright (C) 2019-20120 bodhi <mibodhi@gmail.com>
++ *                    Richard Jackson <rj@swanbourne.com>
++ *                    Pieter-Jan Crommen <pj.crommen@gmail.com>
++ *
++ * Based on
++ * Device Tree file for Synology DS116 NAS
++ *
++ * Copyright (C) 2017 Willy Tarreau <w@1wt.eu>
++ */
++
++/dts-v1/;
++#include "armada-385.dtsi"
++#include <dt-bindings/gpio/gpio.h>
++
++/ {
++	model = "Synology RS816";
++	compatible = "marvell,a385-gp", "marvell,armada385", "marvell,armada380";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>; /* 1 GB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000>;
++
++		internal-regs {
++			i2c@11000 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&i2c0_pins>;
++				status = "okay";
++				clock-frequency = <100000>;
++
++				eeprom@57 {
++					compatible = "atmel,24c64";
++					reg = <0x57>;
++				};
++			};
++
++			serial@12000 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&uart0_pins>;
++				status = "okay";
++			};
++
++			serial@12100 {
++				/* A PIC16F1829 is connected to uart1 at 9600 bps,
++				 * and takes single-character orders :
++				 *   "1" : power off // already handled by the poweroff node
++				 *   "2" : short beep
++				 *   "3" : long beep
++				 *   "4" : turn the power LED ON
++				 *   "5" : flash the power LED
++				 *   "6" : turn the power LED OFF
++				 *   "7" : turn the status LED OFF
++				 *   "8" : turn the status LED ON
++				 *   "9" : flash the status LED
++				 *   "A" : flash the motherboard LED (D8)
++				 *   "B" : turn the motherboard LED OFF
++				 *   "C" : hard reset
++				 */
++				pinctrl-names = "default";
++				pinctrl-0 = <&uart1_pins>;
++				status = "okay";
++			};
++
++			poweroff@12100 {
++				compatible = "synology,power-off";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++			};
++
++			ethernet@70000 {
++				pinctrl-names = "default";
++				phy = <&phy0>;
++				phy-mode = "sgmii";
++				buffer-manager = <&bm>;
++				bm,pool-long = <0>;
++				status = "okay";
++			};
++
++			ethernet@34000 {
++				pinctrl-names = "default";
++				phy = <&phy1>;
++				phy-mode = "sgmii";
++				buffer-manager = <&bm>;
++				bm,pool-long = <0>;
++				status = "okay";
++			};
++
++
++			mdio@72004 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&mdio_pins>;
++
++				phy0: ethernet-phy@0 {
++					reg = <1>;
++				};
++
++				phy1: ethernet-phy@1 {
++					reg = <0>;
++				};
++			};
++
++			sata@a8000 {
++				pinctrl-names = "default";
++				pinctrl-0 = <&sata0_pins>;
++				status = "okay";
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				sata0: sata-port@0 {
++					reg = <0>;
++					target-supply = <&reg_5v_sata0>;
++				};
++
++				sata1: sata-port@1 {
++					reg = <1>;
++					target-supply = <&reg_5v_sata1>;
++				};
++			};
++
++			bm@c8000 {
++				status = "okay";
++			};
++
++			usb3@f0000 {
++				usb-phy = <&usb3_0_phy>;
++				status = "okay";
++			};
++
++			usb3@f8000 {
++				usb-phy = <&usb3_1_phy>;
++				status = "okay";
++			};
++		};
++
++		bm-bppi {
++			status = "okay";
++		};
++
++		pcie {
++                        
++			status = "okay";
++
++			pcie@2,0 {
++				/* Port 1, Lane 0 */
++				status = "okay";
++			};
++			pcie@3,0 {
++				/* Port 2, Lane 0 */
++				status = "okay";
++			};
++			pcie@4,0 {
++				/* Port 3, Lane 0 */
++				status = "okay";
++			};
++
++
++		};
++
++	};
++
++	gpio-fan {
++			compatible = "gpio-fan";
++			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>,
++				<&gpio1 17 GPIO_ACTIVE_HIGH>,
++				<&gpio1 16 GPIO_ACTIVE_HIGH>;
++			gpio-fan,speed-map = <   0 0
++					      1500 1
++					      1750 2
++					      2500 3
++					      2600 4
++					      3100 5>;
++			#cooling-cells = <2>;
++		};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-0 = <&pmx_sata1_green_led>;
++
++		pinctrl-names = "default";
++
++		green_sata1 {
++			label = "rs816:green:sata1";
++			gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
++                        linux,default-trigger = "ide-disk1";
++		};
++	};
++
++	usb3_0_phy: usb3_0_phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_usb3_0_vbus>;
++		#phy-cells = <0>;
++	};
++
++	usb3_1_phy: usb3_1_phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_usb3_1_vbus>;
++		#phy-cells = <0>;
++	};
++
++	reg_usb3_0_vbus: usb3-vbus0 {
++		compatible = "regulator-fixed";
++		regulator-name = "usb3-vbus0";
++		pinctrl-names = "default";
++		pinctrl-0 = <&xhci0_vbus_pins>;
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		gpio = <&gpio1 26 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_usb3_1_vbus: usb3-vbus1 {
++		compatible = "regulator-fixed";
++		regulator-name = "usb3-vbus1";
++		pinctrl-names = "default";
++		pinctrl-0 = <&xhci1_vbus_pins>;
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		gpio = <&gpio1 27 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_sata0: pwr-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio0 15 GPIO_ACTIVE_HIGH>;
++	};
++	
++	reg_sata1: pwr-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 5 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata0: v5-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_12v_sata0: v12-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata0>;
++	};
++	
++	reg_5v_sata1: v5-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata1";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata1>;
++	};
++
++	reg_12v_sata1: v12-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata1>;
++	};
++};
++
++&spi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins>;
++	status = "okay";
++
++	spi-flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "macronix,mx25l6405d", "jedec,spi-nor";
++		reg = <0>; /* Chip select 0 */
++		spi-max-frequency = <50000000>;
++		m25p,fast-read;
++
++		/* Note: there is a redboot partition table despite u-boot
++		 * being used. The names presented here are the same as those
++		 * found in the FIS directory. There is also a small device
++		 * tree in the last 64kB of the RedBoot partition which is not
++		 * enumerated. The MAC address and the serial number are listed
++		 * in the "vendor" partition.
++		 */
++		partition@0 {
++			label = "RedBoot";
++			reg = <0x00000000 0x000f0000>;
++			read-only;
++		};
++
++		partition@c0000 {
++			label = "zImage";
++			reg = <0x000f0000 0x002d0000>;
++		};
++
++		partition@390000 {
++			label = "rd.gz";
++			reg = <0x003c0000 0x00410000>;
++		};
++
++		partition@7d0000 {
++			label = "vendor";
++			reg = <0x007d0000 0x00010000>;
++			read-only;
++		};
++
++		partition@7e0000 {
++			label = "RedBoot config";
++			reg = <0x007e0000 0x00010000>;
++			read-only;
++		};
++
++		partition@7f0000 {
++			label = "FIS directory";
++			reg = <0x007f0000 0x00010000>;
++			read-only;
++		};
++	};
++};
++
++&pinctrl {
++	/* use only one pin for UART1, as mpp20 is used by sata0 */
++	uart1_pins: uart-pins-1 {
++		marvell,pins = "mpp19";
++		marvell,function = "ua1";
++	};
++
++	xhci0_vbus_pins: xhci0_vbus_pins {
++		marvell,pins = "mpp58";
++		marvell,function = "gpio";
++	};
++	xhci1_vbus_pins: xhci1_vbus_pins {
++		marvell,pins = "mpp59";
++		marvell,function = "gpio";
++	};
++	pmx_sata1_green_led: pmx_sata1_green_led {
++		marvell,pins = "mpp6";
++		marvell,function = "gpio";
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-thecus-n2350.dts b/arch/arm/boot/dts/marvell/armada-385-thecus-n2350.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-thecus-n2350.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-385-thecus-n2350.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,440 @@
++// SPDX-License-Identifier: (GPL-2.0 OR MIT)
++/*
++ * Device Tree file for Thecus N2350 board
++ *
++ * Copyright (C) 2018-2024 Tony Dinh <mibodhi@gmail.com>
++ * Copyright (C) 2018 Manuel Jung <manuel.jung@hotmail.com>
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-385.dtsi"
++
++/ {
++	model = "Thecus N2350";
++	compatible = "thecus,n2350", "marvell,armada385";
++
++	aliases {
++		ethernet0 = &eth0;
++	};
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>; /* 1GB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000>;
++
++	};
++
++	usb3_0_phy: usb-phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&usb3_0_power>;
++		 #phy-cells = <0>;
++	};
++
++	usb3_1_phy: usb-phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&usb3_1_power>;
++		 #phy-cells = <0>;
++	};
++
++	keys {
++		compatible = "gpio-keys";
++		pinctrl-0 = <&pmx_power_button &pmx_copy_button &pmx_reset_button>;
++		pinctrl-names = "default";
++
++		button-1 {
++			label = "Power Button";
++			linux,code = <KEY_POWER>;
++			gpios = <&gpio1 17 GPIO_ACTIVE_HIGH>;
++		};
++
++		button-2 {
++			label = "Copy Button";
++			linux,code = <KEY_COPY>;
++			gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>;
++		};
++
++		button-3 {
++			label = "Reset Button";
++			linux,code = <KEY_RESTART>;
++			gpios = <&gpio1 18 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	leds {
++		compatible = "gpio-leds";
++		pinctrl-0 = <&pmx_sata1_white_led
++				&pmx_sata1_red_led
++				&pmx_sata2_white_led
++				&pmx_sata2_red_led
++				&pmx_sys_white_led
++				&pmx_sys_red_led
++				&pmx_pwr_blue_led
++				&pmx_pwr_red_led
++				&pmx_usb_white_led
++				&pmx_usb_red_led>;
++
++		pinctrl-names = "default";
++
++		led-1 {
++			label = "n2350:white:sata1";
++			gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-2 {
++			label = "n2350:red:sata1";
++			gpios = <&gpio1 14 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-3 {
++			label = "n2350:white:sata2";
++			gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-4 {
++			label = "n2350:red:sata2";
++			gpios = <&gpio1 15 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-5 {
++			label = "n2350:white:sys";
++			gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "default-on";
++		};
++
++		led-6 {
++			label = "n2350:red:sys";
++			gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-7 {
++			label = "n2350:blue:pwr";
++			gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-8 {
++			label = "n2350:red:pwr";
++			gpios = <&gpio0 18 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-9 {
++			label = "n2350:white:usb";
++			gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
++		};
++
++		led-10 {
++			label = "n2350:red:usb";
++			gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++	fan {
++		compatible = "gpio-fan";
++		gpios = <&gpio1 16 GPIO_ACTIVE_HIGH>;
++		gpio-fan,speed-map = <	  0  0>,
++					<600  1>,
++					<3000 2 >;
++	};
++
++	usb3_0_power: v5-vbus0 {
++		compatible = "regulator-fixed";
++		regulator-name = "USB3_0_Power";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio0 21 GPIO_ACTIVE_HIGH>;
++	};
++
++	usb3_1_power: v5-vbus1 {
++		compatible = "regulator-fixed";
++		regulator-name = "USB3_1_Power";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio0 24 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_sata0: pwr-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata0: v5-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_12v_sata0: v12-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_sata1: pwr-sata0 {
++		regulator-name = "pwr_en_sata1";
++		compatible = "regulator-fixed";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-always-on;
++		regulator-boot-on;
++		gpio = <&gpio1 13 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata1: v5-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata1";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata1>;
++	};
++
++	reg_12v_sata1: v12-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata1>;
++	};
++
++	gpio-poweroff {
++		compatible = "gpio-poweroff";
++		pinctrl-0 = <&pmx_pwr_off>;
++		pinctrl-names = "default";
++		gpios = <&gpio1 22 GPIO_ACTIVE_HIGH>;
++	};
++
++};
++
++&ahci0 {
++	status = "okay";
++};
++
++&bm {
++	status = "okay";
++};
++
++&bm_bppi {
++	status = "okay";
++};
++
++&eth0 {
++	status = "okay";
++	phy = <&phy0>;
++	phy-mode = "sgmii";
++	buffer-manager = <&bm>;
++	bm,pool-long = <0>;
++	bm,pool-short = <1>;
++};
++
++&i2c0 {
++	status = "okay";
++	clock-frequency = <100000>;
++};
++
++&i2c1 {
++	status = "okay";
++	clock-frequency = <100000>;
++};
++
++&mdio {
++	phy0: ethernet-phy@1 {
++		reg = <1>;
++	};
++};
++
++&nand_controller {
++	status = "okay";
++
++	nand@0 {
++		status = "okay";
++		reg = <0>;
++		label = "pxa3xx_nand-0";
++		nand-rb = <0>;
++		marvell,nand-keep-config;
++		nand-on-flash-bbt;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "rootfs";
++				reg = <0x00000000 0x20000000>;
++			};
++
++		};
++	};
++};
++
++&pciec {
++	status = "okay";
++};
++
++&pcie1 {
++	status = "okay";
++};
++
++&pcie2 {
++	status = "okay";
++};
++
++&pinctrl {
++	pinctrl-names = "default";
++
++	pmx_power_button: pmx-power-button {
++		marvell,pins = "mpp49";
++		marvell,function = "gpio";
++	};
++
++	pmx_copy_button: pmx-copy-button {
++		marvell,pins = "mpp52";
++		marvell,function = "gpio";
++	};
++
++	pmx_reset_button: pmx-reset-button {
++		marvell,pins = "mpp50";
++		marvell,function = "gpio";
++	};
++
++	pmx_sata1_white_led: pmx-sata1-white-led {
++		marvell,pins = "mpp20";
++		marvell,function = "gpio";
++	};
++
++	pmx_sata1_red_led: pmx-sata1-red-led {
++		marvell,pins = "mpp46";
++		marvell,function = "gpio";
++	};
++
++	pmx_sata2_white_led: pmx-sata2-white-led {
++		marvell,pins = "mpp19";
++		marvell,function = "gpio";
++	};
++
++	pmx_sata2_red_led: pmx-sata2-red-led {
++		marvell,pins = "mpp47";
++		marvell,function = "gpio";
++	};
++
++	pmx_sys_white_led: pmx-sys-white-led {
++		marvell,pins = "mpp14";
++		marvell,function = "gpio";
++	};
++
++	pmx_sys_red_led: pmx-sys-red-led {
++		marvell,pins = "mpp15";
++		marvell,function = "gpio";
++	};
++
++	pmx_buzzer: pmx-buzzer {
++		marvell,pins = "mpp51";
++		marvell,function = "gpio";
++	};
++
++	pmx_pwr_off: pmx-pwr-off {
++		marvell,pins = "mpp54";
++		marvell,function = "gpio";
++	};
++
++	pmx_pwr_blue_led: pmx-pwr-blue-led {
++		marvell,pins = "mpp43";
++		marvell,function = "gpio";
++	};
++
++	pmx_pwr_red_led: pmx-pwr-red-led {
++		marvell,pins = "mpp18";
++		marvell,function = "gpio";
++	};
++
++	pmx_usb_white_led: pmx-usb-white-led {
++		marvell,pins = "mpp16";
++		marvell,function = "gpio";
++	};
++
++	pmx_usb_red_led: pmx-usb-red-led {
++		marvell,pins = "mpp17";
++		marvell,function = "gpio";
++	};
++};
++
++&sdhci {
++	broken-cd;
++	wp-inverted;
++	bus-width = <8>;
++	status = "okay";
++	no-1-8-v;
++};
++
++&spi1 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi1_pins>;
++	status = "okay";
++
++	/* spi: 4M Flash Macronix MX25L3205D */
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <0>;
++		compatible = "jedec,spi-nor";
++		reg = <0>;
++
++		spi-max-frequency = <50000000>;
++		spi-cpha;
++
++		partition@0 {
++			label = "u-boot";
++			reg = <0x00000000 0x00100000>;
++		};
++
++		partition@100000 {
++			label = "u-boot-env";
++			reg = <0x00100000 0x00010000>;
++		};
++	};
++};
++
++&uart0 {
++	status = "okay";
++};
++
++&usb0 {
++	status = "okay";
++};
++
++&usb3_0 {
++	status = "okay";
++};
++
++&usb3_1 {
++	status = "okay";
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-wd-ex2100.dts b/arch/arm/boot/dts/marvell/armada-385-wd-ex2100.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-wd-ex2100.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-385-wd-ex2100.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,253 @@
++/*
++ * Device Tree file for WD My Cloud EX2100
++ *
++ * Copyright (C) 2017-2018 bodhi <mibodhi@gmail.com>
++ *                         Hal Martin <hal.martin@gmail.com> 
++ *
++ * Based on
++ * Device Tree file for Marvell Armada 388 evaluation board
++ * (DB-88F6820)
++ *
++ *  Copyright (C) 2014 Marvell
++ *
++ * Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This file is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This file is distributed in the hope that it will be useful
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ * Or, alternatively
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED , WITHOUT WARRANTY OF ANY KIND
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++/dts-v1/;
++#include "armada-388.dtsi"
++
++/ {
++	model = "WD My Cloud EX2100";
++	compatible = "marvell,a385-db", "marvell,armada388",
++		"marvell,armada385", "marvell,armada380";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>; /* 1 GB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000>;
++
++		internal-regs {
++			i2c@11000 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			i2c@11100 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			serial@12000 {
++				status = "okay";
++			};
++
++			serial@12100 {
++				status = "okay";
++			};
++
++			ethernet@34000 {
++				status = "okay";
++				phy = <&phy1>;
++				phy-mode = "sgmii";
++				buffer-manager = <&bm>;
++				bm,pool-long = <2>;
++				bm,pool-short = <3>;
++			};
++
++			usb@58000 {
++				status = "ok";
++			};
++
++			ethernet@70000 {
++				status = "okay";
++				phy = <&phy0>;
++				phy-mode = "rgmii-id";
++				buffer-manager = <&bm>;
++				bm,pool-long = <0>;
++				bm,pool-short = <1>;
++			};
++
++			mdio@72004 {
++				phy0: ethernet-phy@0 {
++					reg = <0>;
++				};
++
++				phy1: ethernet-phy@1 {
++					reg = <1>;
++				};
++
++			};
++
++			sata@a8000 {
++				status = "okay";
++			};
++
++			bm@c8000 {
++				status = "okay";
++			};
++
++			sdhci@d8000 {
++				broken-cd;
++				wp-inverted;
++				bus-width = <8>;
++				status = "okay";
++				no-1-8-v;
++			};
++
++			usb3@f0000 {
++				status = "okay";
++			};
++
++			usb3@f8000 {
++				status = "okay";
++			};
++		};
++
++		bm-bppi {
++			status = "okay";
++		};
++
++		pcie-controller {
++			status = "okay";
++			/*
++			 * The two PCIe units are accessible through
++			 * standard PCIe slots on the board.
++			 */
++			pcie@1,0 {
++				/* Port 0, Lane 0 */
++				status = "okay";
++			};
++			pcie@2,0 {
++				/* Port 1, Lane 0 */
++				status = "okay";
++			};
++		};
++	};
++};
++
++&spi0 {
++	status = "okay";
++
++	spi-flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "w25q32", "jedec,spi-nor";
++		reg = <0>; /* Chip select 0 */
++		spi-max-frequency = <108000000>;
++	};
++};
++
++&nand_controller {
++	status = "okay";
++
++	nand@0 {
++		status = "okay";
++		reg = <0>;
++		label = "pxa3xx_nand-0";
++		nand-rb = <0>;
++		marvell,nand-keep-config;
++		nand-on-flash-bbt;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "U-Boot";
++				reg = <0x00000000 0x00500000>;		/*   5 MB */
++			};
++
++			partition@500000 {
++				label = "uImage";
++				reg = <0x00500000 0x000000a00000>;	/*   5 MB */
++			};
++
++			partition@a00000 {
++				label = "uRamdisk";
++				reg = <0x00a00000 0x00f00000>;		/*   5 MB */
++			};
++
++			partition@f00000 {
++				label = "image.cfs";
++				reg = <0x00f00000 0x1c800000>;		/*  441M MB */
++			};
++
++			partition@1c800000 {
++				label = "rescue_fw";
++				reg = <0x1c800000 0x1d700000>;		/*    15 MB */
++			};
++
++			partition@1d700000 {
++				label = "config";
++				reg = <0x1d700000 0x1eb00000>;		/*    20 MB */
++			};
++
++			partition@1eb00000 {
++				label = "reserve1";
++				reg = <0x1eb00000 0x1f500000>;		/*    10 MB */
++			};
++
++			partition@1f500000 {
++				label = "reserve2";
++				reg = <0x1f500000 0x1ff00000>;		/*    10 MB */
++			};
++
++		};
++	};
++};
++
++
++
++
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-385-wd-ex2-ultra.dts b/arch/arm/boot/dts/marvell/armada-385-wd-ex2-ultra.dts
+--- a/arch/arm/boot/dts/marvell/armada-385-wd-ex2-ultra.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-385-wd-ex2-ultra.dts	2026-08-21 11:11:17.769899941 -0700
+@@ -0,0 +1,377 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Device Tree file for Western Digital My Cloud Ex2 Ultra (BWVZ/Grand Teton)
++ *
++ * Copyright (C) 2020 bodhi <mibodhi@gmail.com>
++ *                    Duong Trung Duong <dtd.2512@gmail.com>
++ *
++ * Based on
++ * Copyright (C) 2019 Evgeny Kolesnikov <evgenyz@gmail.com>
++ * Copyright (C) 2016 Martin Mueller <mm@sig21.net>
++ * Copyright (C) 2013 Gregory CLEMENT <gregory.clement@free-electrons.com>
++ * Copyright (C) 2014 Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
++ *
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-385.dtsi"
++
++/ {
++	model = "WD MyCloud Ex2 Ultra";
++	compatible = "wd,mcex2u", "marvell,armada385", "marvell,armada380";
++
++        aliases {
++                ethernet0 = &eth0;
++        };
++
++	chosen {
++		stdout-path = "console=ttyS0,115200 root=LABEL=rootfs earlyprintk";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>; /* 1024 MB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000        /* CESA0: PHYS=0xf1100000 size 64K */
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000        /* CESA1: PHYS=0xf1110000 */
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000       /*    BM: PHYS=0xf1200000 size 1M */
++			  MBUS_ID(0x0b, 0x04) 0 0xf1300000 0x100000>;     /*   PNC: PHYS=0xf1300000 size 1M */
++
++		internal-regs {
++			timer@c200 {
++				status = "okay";
++			};
++
++			i2c0: i2c@11000 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			i2c1: i2c@11100 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			serial@12000 {
++				status = "okay";
++			};
++
++			/* Connected to Welltrend 6703F-OG240WT MCU
++			 * which controls power, fan and other things
++			 */
++			serial@12100 {
++				status = "okay";
++			};
++
++			poweroff@12100 {
++				compatible = "uart-poweroff";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++				baud = <19200>;
++				cmd = [fa 03 03 01 00 00 fb];
++				status = "okay";
++			};
++
++			restart@12100 {
++				compatible = "uart-restart";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++				baud = <19200>;
++				cmd = [fa 03 03 02 00 00 fb];
++				override;
++				status = "okay";
++			};
++			
++			pinctrl@18000 {
++				/* use only one pin for UART1, as mpp20 is used by sata0 */
++				uart1_pins: uart-pins-1 {
++					marvell,pins = "mpp19";
++					marvell,function = "ua1";
++				};
++
++				xhci0_vbus_pins: xhci0-vbus-pins {
++					marvell,pins = "mpp26";
++					marvell,function = "gpio";
++				};
++
++				xhci1_vbus_pins: xhci1-vbus-pins {
++					marvell,pins = "mpp27";
++					marvell,function = "gpio";
++				};
++
++				sata0_pins: sata-pins-0 {
++					marvell,pins = "mpp55";
++					marvell,function = "sata0";
++				};
++
++				sata1_pins: sata-pins-1 {
++					marvell,pins = "mpp56";
++					marvell,function = "sata1";
++				};
++
++				sata_leds: sata-leds {
++					marvell,pins = "mpp43", "mpp52", "mpp53", "mpp54";
++					marvell,function = "gpio";
++				};
++
++				btn_pins: btn-pins {
++					marvell,pins = "mpp50";
++					marvell,function = "gpio";
++				};
++			};
++
++			usb@58000 {
++				status = "ok";
++			};
++
++			ethernet@34000 {
++				status = "okay";
++				phy = <&phy0>;
++				phy-mode = "sgmii";
++				buffer-manager = <&bm>;
++				bm,pool-long = <0>;
++				bm,pool-short = <1>;
++			};
++
++			mdio@72004 {
++				phy0: ethernet-phy@0 {
++					/* Init ETH LEDs */
++					marvell,reg-init = <3 16 0 0x101e>;
++					reg = <0>;
++				};
++			};
++
++			crypto@9d000 {
++				status = "okay";
++			};
++
++			rtc@a3800 {
++				status = "okay";
++			};
++
++			sata@a8000 {
++				status = "okay";
++			};
++
++			bm@c8000 {
++				status = "okay";
++			};
++
++			nand-controller@d0000 {
++				status = "okay";
++
++				nand: nand@0 {
++					reg = <0>;
++					label = "pxa3xx_nand-0";
++					nand-rb = <0>;
++					marvell,nand-keep-config;
++					#marvell,nand-enable-arbiter; //optional
++					nand-on-flash-bbt;
++					nand-ecc-strength = <4>;
++					nand-ecc-step-size = <512>;
++
++					partitions {
++						compatible = "fixed-partitions";
++						#address-cells = <1>;
++						#size-cells = <1>;
++
++						partition@0 {
++							label = "U-Boot";
++							reg = <0x00000000 0x00500000>;    /*   5 MB */
++							read-only;
++						};
++
++						partition@500000 {
++							label = "uImage";
++							reg = <0x00500000 0x00500000>;    /*   5 MB */
++						};
++
++						partition@a00000 {
++							label = "uRamdisk";
++							reg = <0x00a00000 0x00500000>;    /*   5 MB */
++						};
++							
++						partition@f00000 {
++							label = "image.cfs";
++							reg = <0x00f00000 0x0b900000>;    /* 185 MB */
++						};
++
++						partition@c800000 {
++							label = "rescue fw";
++							reg = <0x0c800000 0x00f00000>;    /*  15 MB */
++						};
++							
++						partition@d70000 {
++							label = "config";
++							reg = <0x0d700000 0x01400000>;    /*  20 MB */
++						};
++							
++						partition@eb00000 {
++							label = "reserve1";
++							reg = <0x0eb00000 0x00a00000>;    /*  10 MB */
++						};
++							
++						partition@f500000 {
++							label = "reserve2";
++							reg = <0x0f500000 0x00a00000>;    /*  10 MB */
++						};
++					};
++				};
++			};
++
++			sdhci@d8000 {
++				status = "disabled";
++			};
++
++			usb3@f0000 {
++				usb-phy = <&usb3_0_phy>;
++				status = "okay";
++			};
++
++			usb3@f8000 {
++				usb-phy = <&usb3_1_phy>;
++				status = "okay";
++			};
++		};
++
++		bm-bppi {
++			status = "okay";
++		};
++	};
++
++	gpio-leds {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&sata_leds>;
++
++		sata1-red-led {
++			label = "wdmcex2u:hdd1:red";
++			gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "none";
++		};
++		sata2-red-led {
++			label = "wdmcex2u:hdd2:red";
++			gpios = <&gpio1 20 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "none";
++		};
++		sata1-blue-led {
++			label = "wdmcex2u:hdd1:blue";
++			gpios = <&gpio1 21 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "disk-activity";
++		};
++		sata2-blue-led {
++			label = "wdmcex2u:hdd2:blue";
++			gpios = <&gpio1 22 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "disk-activity";
++		};
++	};
++
++	gpio-keys {
++		compatible = "gpio-keys";
++		pinctrl-names = "default";
++		pinctrl-0 = <&btn_pins>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		reset {
++			label = "reset";
++			linux,code = <KEY_RESTART>;  // Restart=0x198, Power=0x116
++			gpios = <&gpio1 18 GPIO_ACTIVE_LOW>;
++			debounce-interval = <60>;
++			wakeup-source;
++		};
++	};
++
++	usb3_0_phy: usb3_0_phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_usb3_0_vbus>;
++	};
++
++	usb3_1_phy: usb3_1_phy {
++		compatible = "usb-nop-xceiv";
++		vcc-supply = <&reg_usb3_1_vbus>;
++	};
++
++	reg_usb3_0_vbus: usb3-vbus0 {
++		compatible = "regulator-fixed";
++		regulator-name = "usb3-vbus0";
++		pinctrl-names = "default";
++		pinctrl-0 = <&xhci0_vbus_pins>;
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		gpio = <&gpio0 26 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_usb3_1_vbus: usb3-vbus1 {
++		compatible = "regulator-fixed";
++		regulator-name = "usb3-vbus1";
++		pinctrl-names = "default";
++		pinctrl-0 = <&xhci1_vbus_pins>;
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		enable-active-high;
++		regulator-always-on;
++		gpio = <&gpio0 27 GPIO_ACTIVE_HIGH>;
++	};
++/*
++	reg_sata0: pwr-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-boot-on;
++		gpio = <&gpio1 23 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata0: v5-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata0";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata0>;
++	};
++
++	reg_12v_sata0: v12-sata0 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata0";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata0>;
++	};
++	
++	reg_sata1: pwr-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "pwr_en_sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		enable-active-high;
++		regulator-boot-on;
++		gpio = <&gpio1 24 GPIO_ACTIVE_HIGH>;
++	};
++
++	reg_5v_sata1: v5-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v5.0-sata1";
++		regulator-min-microvolt = <5000000>;
++		regulator-max-microvolt = <5000000>;
++		vin-supply = <&reg_sata1>;
++	};
++
++	reg_12v_sata1: v12-sata1 {
++		compatible = "regulator-fixed";
++		regulator-name = "v12.0-sata1";
++		regulator-min-microvolt = <12000000>;
++		regulator-max-microvolt = <12000000>;
++		vin-supply = <&reg_sata1>;
++	};
++*/
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-388-wd-ex4100.dts b/arch/arm/boot/dts/marvell/armada-388-wd-ex4100.dts
+--- a/arch/arm/boot/dts/marvell/armada-388-wd-ex4100.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-388-wd-ex4100.dts	2026-08-21 11:11:17.779896336 -0700
+@@ -0,0 +1,253 @@
++/*
++ * Device Tree file for WD My Cloud EX4100
++ *
++ * Copyright (C) 2017-2018 bodhi <mibodhi@gmail.com>
++ *                         saschadd <saschadd@web.de>
++ *
++ * Based on
++ * Device Tree file for Marvell Armada 388 evaluation board
++ * (DB-88F6820)
++ *
++ *  Copyright (C) 2014 Marvell
++ *
++ * Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
++ *
++ * This file is dual-licensed: you can use it either under the terms
++ * of the GPL or the X11 license, at your option. Note that this dual
++ * licensing only applies to this file, and not this project as a
++ * whole.
++ *
++ *  a) This file is free software; you can redistribute it and/or
++ *     modify it under the terms of the GNU General Public License as
++ *     published by the Free Software Foundation; either version 2 of the
++ *     License, or (at your option) any later version.
++ *
++ *     This file is distributed in the hope that it will be useful
++ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *     GNU General Public License for more details.
++ *
++ * Or, alternatively
++ *
++ *  b) Permission is hereby granted, free of charge, to any person
++ *     obtaining a copy of this software and associated documentation
++ *     files (the "Software"), to deal in the Software without
++ *     restriction, including without limitation the rights to use
++ *     copy, modify, merge, publish, distribute, sublicense, and/or
++ *     sell copies of the Software, and to permit persons to whom the
++ *     Software is furnished to do so, subject to the following
++ *     conditions:
++ *
++ *     The above copyright notice and this permission notice shall be
++ *     included in all copies or substantial portions of the Software.
++ *
++ *     THE SOFTWARE IS PROVIDED , WITHOUT WARRANTY OF ANY KIND
++ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
++ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
++ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY
++ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
++ *     OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++/dts-v1/;
++#include "armada-388.dtsi"
++
++/ {
++	model = "WD My Cloud EX4100";
++	compatible = "marvell,a385-db", "marvell,armada388",
++		"marvell,armada385", "marvell,armada380";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x80000000>; /* 2 GB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x19) 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x15) 0 0xf1110000 0x10000
++			  MBUS_ID(0x0c, 0x04) 0 0xf1200000 0x100000>;
++
++		internal-regs {
++			i2c@11000 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			i2c@11100 {
++				status = "okay";
++				clock-frequency = <100000>;
++			};
++
++			serial@12000 {
++				status = "okay";
++			};
++
++			serial@12100 {
++				status = "okay";
++			};
++
++			ethernet@30000 {
++				status = "okay";
++				phy = <&phy1>;
++				phy-mode = "rgmii-id";
++				buffer-manager = <&bm>;
++				bm,pool-long = <2>;
++				bm,pool-short = <3>;
++			};
++
++			usb@58000 {
++				status = "ok";
++			};
++
++			ethernet@70000 {
++				status = "okay";
++				phy = <&phy0>;
++				phy-mode = "rgmii-id";
++				buffer-manager = <&bm>;
++				bm,pool-long = <0>;
++				bm,pool-short = <1>;
++			};
++
++			mdio@72004 {
++				phy0: ethernet-phy@0 {
++					reg = <0>;
++				};
++
++				phy1: ethernet-phy@1 {
++					reg = <1>;
++				};
++			};
++
++			sata@a8000 {
++				status = "okay";
++			};
++
++			sata@e0000 {
++				status = "okay";
++			};
++
++			bm@c8000 {
++				status = "okay";
++			};
++
++			sdhci@d8000 {
++				broken-cd;
++				wp-inverted;
++				bus-width = <8>;
++				status = "okay";
++				no-1-8-v;
++			};
++
++			usb3@f0000 {
++				status = "okay";
++			};
++
++			usb3@f8000 {
++				status = "okay";
++			};
++		};
++
++		bm-bppi {
++			status = "okay";
++		};
++
++		pcie-controller {
++			status = "okay";
++			/*
++			 * The two PCIe units are accessible through
++			 * standard PCIe slots on the board.
++			 */
++			pcie@1,0 {
++				/* Port 0, Lane 0 */
++				status = "okay";
++			};
++			pcie@2,0 {
++				/* Port 1, Lane 0 */
++				status = "okay";
++			};
++		};
++	};
++};
++
++&spi0 {
++	status = "okay";
++
++	spi-flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "w25q32", "jedec,spi-nor";
++		reg = <0>; /* Chip select 0 */
++		spi-max-frequency = <108000000>;
++	};
++};
++
++&nand_controller {
++	status = "okay";
++
++	nand@0 {
++		status = "okay";
++		reg = <0>;
++		label = "pxa3xx_nand-0";
++		nand-rb = <0>;
++		marvell,nand-keep-config;
++		nand-on-flash-bbt;
++		nand-ecc-strength = <4>;
++		nand-ecc-step-size = <512>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "U-Boot";
++				reg = <0x00000000 0x00500000>;		/*   5 MB */
++			};
++
++			partition@500000 {
++				label = "uImage";
++				reg = <0x00500000 0x000000a00000>;	/*   5 MB */
++			};
++
++			partition@a00000 {
++				label = "uRamdisk";
++				reg = <0x00a00000 0x00f00000>;		/*   5 MB */
++			};
++
++			partition@f00000 {
++				label = "image.cfs";
++				reg = <0x00f00000 0x1c800000>;		/*  441M MB */
++			};
++
++			partition@1c800000 {
++				label = "rescue_fw";
++				reg = <0x1c800000 0x1d700000>;		/*    15 MB */
++			};
++
++			partition@1d700000 {
++				label = "config";
++				reg = <0x1d700000 0x1eb00000>;		/*    20 MB */
++			};
++
++			partition@1eb00000 {
++				label = "reserve1";
++				reg = <0x1eb00000 0x1f500000>;		/*    10 MB */
++			};
++
++			partition@1f500000 {
++				label = "reserve2";
++				reg = <0x1f500000 0x1ff00000>;		/*    10 MB */
++			};
++		};
++	};
++};
++
++
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/armada-xp-synology-ds214.dts b/arch/arm/boot/dts/marvell/armada-xp-synology-ds214.dts
+--- a/arch/arm/boot/dts/marvell/armada-xp-synology-ds214.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/armada-xp-synology-ds214.dts	2026-08-21 11:11:17.779896336 -0700
+@@ -0,0 +1,308 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
++/*
++ * Copyright (C) 2022, bodhi <mibodhi@gmail.com>
++ *
++ * Base on Device Tree file for Synology DS414
++ * by Arnaud EBALARD <arno@natisbad.org>
++ *
++ * Note: this Device Tree assumes that the bootloader has remapped the
++ * internal registers to 0xf1000000 (instead of the old 0xd0000000).
++ * The 0xf1000000 is the default used by the recent, DT-capable, U-Boot
++ * bootloaders provided by Marvell. It is used in recent versions of
++ * DSM software provided by Synology. Nonetheless, some earlier boards
++ * were delivered with an older version of u-boot that left internal
++ * registers mapped at 0xd0000000. If you have such a device you will
++ * not be able to directly boot a kernel based on this Device Tree. In
++ * that case, the preferred solution is to update your bootloader (e.g.
++ * by upgrading to latest version of DSM, or building a new one and
++ * installing it from u-boot prompt) or adjust the Devive Tree
++ * (s/0xf1000000/0xd0000000/ in 'ranges' below).
++ */
++
++/dts-v1/;
++
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "armada-xp-mv78230.dtsi"
++
++/ {
++	model = "Synology DS214";
++	compatible = "synology,ds414", "synology,ds214", "marvell,armadaxp-mv78230",
++		     "marvell,armadaxp", "marvell,armada-370-xp";
++
++	chosen {
++		stdout-path = "serial0:115200n8";
++	};
++
++	memory@0 {
++		device_type = "memory";
++		reg = <0 0x00000000 0 0x40000000>; /* 1GB */
++	};
++
++	soc {
++		ranges = <MBUS_ID(0xf0, 0x01) 0 0 0xf1000000 0x100000
++			  MBUS_ID(0x01, 0x1d) 0 0 0xfff00000 0x100000
++			  MBUS_ID(0x09, 0x09) 0 0 0xf1100000 0x10000
++			  MBUS_ID(0x09, 0x05) 0 0 0xf1110000 0x10000>;
++
++		internal-regs {
++
++			/* RTC is provided by Seiko S-35390A below */
++			rtc@10300 {
++				status = "disabled";
++			};
++
++			i2c@11000 {
++				clock-frequency = <400000>;
++				status = "okay";
++
++				s35390a: s35390a@30 {
++					 compatible = "sii,s35390a";
++					 reg = <0x30>;
++				};
++			};
++
++			/* Connected to a header on device's PCB. This
++			 * provides the main console for the device.
++			 *
++			 * Warning: the device may not boot with a 3.3V
++			 * USB-serial converter connected when the power
++			 * button is pressed. The converter needs to be
++			 * connected a few seconds after pressing the
++			 * power button. This is possibly due to UART0_TXD
++			 * pin being sampled at reset (bit 0 of SAR).
++			 */
++			serial@12000 {
++				status = "okay";
++			};
++
++			/* Connected to a Microchip PIC16F883 for power control */
++			serial@12100 {
++				status = "okay";
++			};
++
++			poweroff@12100 {
++				compatible = "synology,power-off";
++				reg = <0x12100 0x100>;
++				clocks = <&coreclk 0>;
++			};
++
++			/* Front USB 2.0 port */
++			usb@51000 {
++				status = "okay";
++			};
++
++			ethernet@70000 {
++				status = "okay";
++				pinctrl-0 = <&ge0_rgmii_pins>;
++				pinctrl-names = "default";
++				phy = <&phy0>;
++				phy-mode = "rgmii-id";
++			};
++
++			sata@a0000 {
++				nr-ports = <2>;
++				status = "okay";
++			};
++		};
++	};
++
++	regulators {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <0>;
++		pinctrl-0 = <&sata1_pwr_pin &sata2_pwr_pin>;
++		pinctrl-names = "default";
++
++		reg_sata0: regulator@1 {
++			compatible = "regulator-fixed";
++			reg = <1>;
++			regulator-name = "SATA0 Power";
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			startup-delay-us = <2000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio1 10 GPIO_ACTIVE_HIGH>;
++		};
++
++		reg_5v_sata0: v5-sata0 {
++			compatible = "regulator-fixed";
++			regulator-name = "v5.0-sata0";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			vin-supply = <&reg_sata0>;
++		};
++
++		reg_12v_sata0: v12-sata0 {
++			compatible = "regulator-fixed";
++			regulator-name = "v12.0-sata0";
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			vin-supply = <&reg_sata0>;
++		};
++
++		reg_sata1: regulator@2 {
++			regulator-name = "SATA1 Power";
++			compatible = "regulator-fixed";
++			reg = <2>;
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			startup-delay-us = <4000000>;
++			enable-active-high;
++			regulator-always-on;
++			regulator-boot-on;
++			gpio = <&gpio1 12 GPIO_ACTIVE_HIGH>;
++		};
++
++		reg_5v_sata1: v5-sata1 {
++			compatible = "regulator-fixed";
++			regulator-name = "v5.0-sata1";
++			regulator-min-microvolt = <5000000>;
++			regulator-max-microvolt = <5000000>;
++			vin-supply = <&reg_sata1>;
++		};
++
++		reg_12v_sata1: v12-sata1 {
++			compatible = "regulator-fixed";
++			regulator-name = "v12.0-sata1";
++			regulator-min-microvolt = <12000000>;
++			regulator-max-microvolt = <12000000>;
++			vin-supply = <&reg_sata1>;
++		};
++	};
++};
++
++&pciec {
++	status = "okay";
++
++	/*
++	 * Connected to Marvell 88SX7042 SATA-II controller
++	 * handling the four disks.
++	 */
++	pcie@1,0 {
++		/* Port 0, Lane 0 */
++		status = "okay";
++	};
++
++	/*
++	 * Connected to EtronTech EJ168A XHCI controller
++	 * providing the two rear USB 3.0 ports.
++	 */
++	pcie@5,0 {
++		/* Port 1, Lane 0 */
++		status = "okay";
++	};
++};
++
++
++&mdio {
++	phy0: ethernet-phy@0 { /* Marvell 88E1512 */
++		reg = <1>;
++	};
++
++};
++
++&pinctrl {
++	sata1_pwr_pin: sata1-pwr-pin {
++		marvell,pins = "mpp42";
++		marvell,function = "gpio";
++	};
++
++	sata2_pwr_pin: sata2-pwr-pin {
++		marvell,pins = "mpp44";
++		marvell,function = "gpio";
++	};
++
++	sata1_pres_pin: sata1-pres-pin {
++		marvell,pins = "mpp34";
++		marvell,function = "gpio";
++	};
++
++	sata2_pres_pin: sata2-pres-pin {
++		marvell,pins = "mpp35";
++		marvell,function = "gpio";
++	};
++
++	syno_id_bit0_pin: syno-id-bit0-pin {
++		marvell,pins = "mpp26";
++		marvell,function = "gpio";
++	};
++
++	syno_id_bit1_pin: syno-id-bit1-pin {
++		marvell,pins = "mpp28";
++		marvell,function = "gpio";
++	};
++
++	syno_id_bit2_pin: syno-id-bit2-pin {
++		marvell,pins = "mpp29";
++		marvell,function = "gpio";
++	};
++
++	fan1_alarm_pin: fan1-alarm-pin {
++		marvell,pins = "mpp33";
++		marvell,function = "gpio";
++	};
++
++	fan2_alarm_pin: fan2-alarm-pin {
++		marvell,pins = "mpp32";
++		marvell,function = "gpio";
++	};
++};
++
++&spi0 {
++	status = "okay";
++
++	flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "micron,n25q064", "jedec,spi-nor";
++		reg = <0>; /* Chip select 0 */
++		spi-max-frequency = <20000000>;
++
++		/*
++		 * Warning!
++		 *
++		 * Synology u-boot uses its compiled-in environment
++		 * and it seems Synology did not care to change u-boot
++		 * default configuration in order to allow saving a
++		 * modified environment at a sensible location. So,
++		 * if you do a 'saveenv' under u-boot, your modified
++		 * environment will be saved at 1MB after the start
++		 * of the flash, i.e. in the middle of the uImage.
++		 * For that reason, it is strongly advised not to
++		 * change the default environment, unless you know
++		 * what you are doing.
++		 */
++		partition@0 { /* u-boot */
++			label = "RedBoot";
++			reg = <0x00000000 0x000d0000>; /* 832KB */
++		};
++
++		partition@c0000 { /* uImage */
++			label = "zImage";
++			reg = <0x000d0000 0x002d0000>; /* 2880KB */
++		};
++
++		partition@3a0000 { /* uInitramfs */
++			label = "rd.gz";
++			reg = <0x003a0000 0x00430000>; /* 4250KB */
++		};
++
++		partition@7d0000 { /* MAC address and serial number */
++			label = "vendor";
++			reg = <0x007d0000 0x00010000>; /* 64KB */
++		};
++
++		partition@7e0000 {
++			label = "RedBoot config";
++			reg = <0x007e0000 0x00010000>; /* 64KB */
++		};
++
++		partition@7f0000 {
++			label = "FIS directory";
++			reg = <0x007f0000 0x00010000>; /* 64KB */
++		};
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/dove-chip-lxd8941.dts b/arch/arm/boot/dts/marvell/dove-chip-lxd8941.dts
+--- a/arch/arm/boot/dts/marvell/dove-chip-lxd8941.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/dove-chip-lxd8941.dts	2026-08-21 11:11:17.779896336 -0700
+@@ -0,0 +1,127 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Device Tree file for Chip PC LXD8941
++ *
++ *  Copyright (C) 2018 bodhi <mibodhi@gmail.com>
++ *                     Koen
++ *
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "dove.dtsi"
++
++/ {
++	model = "Chip PC LXD8941";
++	compatible = "chip,lxd8941", "marvell,dove-db", "marvell,dove";
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>;
++	};
++
++	chosen {
++		bootargs = "console=ttyS0,115200n8 earlyprintk";
++	};
++
++	gpio-poweroff {
++		compatible = "gpio-poweroff";
++		pinctrl-0 = <&pmx_pwr_off>;
++		pinctrl-names = "default";
++		gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
++	};
++
++};
++                        
++&pinctrl {
++
++	compatible = "marvell,dove-pinctrl";
++	reg = <0x0200 0x14>,
++	<0x0440 0x04>;
++	clocks = <&gate_clk 22>;
++
++	pinctrl-names = "default";
++
++	pmx_pwr_off: pmx-pwr-off {
++		marvell,pins = "mpp8";
++		marvell,function = "gpio";
++	};
++
++};
++
++&uart0 {
++	status = "okay"; 
++};
++
++&uart1 {
++	status = "okay"; 
++};
++
++/* SanDisk eMMC */
++&sdio0 {
++	status = "okay"; 
++	non-removable;
++	bus-width = <4>;
++};
++
++&sdio1 {
++        status = "okay";
++        broken-cd;
++};
++
++&sata0 {
++	status = "okay"; };
++
++&spi0 {
++	status = "okay";
++
++	/* spi0.0: 2M Flash Macronix MX25L1605D */
++	spi-flash@0 {
++		compatible = "st,m25l1605d", "jedec,spi-nor";
++		spi-max-frequency = <86000000>;
++		reg = <0>;
++	};
++};
++
++&i2c0 {
++	status = "okay";
++};
++
++&pcie {
++	status = "okay";
++		
++	pcie0: pcie@1 {
++		status = "okay";
++	};
++		
++	pcie1: pcie@2 {
++		status = "okay";
++	};
++};
++
++&lcd1 {
++	status = "okay";
++};
++
++&lcd0 {
++	status = "okay";
++};
++
++&gpu {
++	status = "okay";
++};
++
++&mdio {
++	status = "okay";
++	ethphy: ethernet-phy@1 {
++		reg = <1>;
++	};
++};
++
++&eth {
++	status = "okay";
++	ethernet-port@0 {
++		phy-handle = <&ethphy>;
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/dove-d2plug.dts b/arch/arm/boot/dts/marvell/dove-d2plug.dts
+--- a/arch/arm/boot/dts/marvell/dove-d2plug.dts	2026-08-19 09:20:32.000000000 -0700
++++ b/arch/arm/boot/dts/marvell/dove-d2plug.dts	2026-08-21 11:11:17.779896336 -0700
+@@ -63,7 +63,7 @@
+ 
+ 	/* spi0.0: 4M Flash Macronix MX25L3205D */
+ 	flash@0 {
+-		compatible = "st,m25l3205d";
++		compatible = "st,m25l3205d", "jedec,spi-nor";
+ 		spi-max-frequency = <20000000>;
+ 		reg = <0>;
+ 	};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/dove-hp-t5335z.dts b/arch/arm/boot/dts/marvell/dove-hp-t5335z.dts
+--- a/arch/arm/boot/dts/marvell/dove-hp-t5335z.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/dove-hp-t5335z.dts	2026-08-21 11:11:17.779896336 -0700
+@@ -0,0 +1,220 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Device Tree file for HP Thin Client T5335z
++ *
++ *  Copyright (C) 2018-2023 bodhi <mibodhi@gmail.com>
++ *
++ */
++
++/dts-v1/;
++#include <dt-bindings/input/input.h>
++#include <dt-bindings/gpio/gpio.h>
++#include "dove.dtsi"
++
++/ {
++	model = "HP Thin Client T5335z";
++	compatible = "hp,t5335z", "marvell,dove-db", "marvell,dove";
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>;
++	};
++
++	chosen {
++		bootargs = "console=ttyS0,115200n8 earlyprintk";
++	};
++
++	gpio-poweroff {
++		compatible = "gpio-poweroff";
++		pinctrl-0 = <&pmx_pwr_off>;
++		pinctrl-names = "default";
++		gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
++	};
++
++	sound {
++		compatible = "simple-audio-card";
++		simple-audio-card,format = "i2s";
++		simple-audio-card,routing =
++			"Headphone Jack", "HPL",
++			"Headphone Jack", "HPR",
++			"Speaker", "SPKOUT",
++			"Speaker", "SPKOUTN",
++			"MIC1", "Mic Jack",
++			"MIC2", "Mic Jack";
++		simple-audio-card,widgets =
++			"Headphone", "Headphone Jack",
++			"Speaker", "Speaker",
++			"Microphone", "Mic Jack";
++
++		simple-audio-card,mclk-fs = <256>;
++
++		simple-audio-card,cpu {
++			sound-dai = <&audio0 0>;
++		};
++
++		simple-audio-card,codec {
++			sound-dai = <&alc5621>;
++		};
++	};
++
++	regulators {
++                compatible = "simple-bus";
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++		reg_lcd: regulator@1 {
++			compatible = "regulator-fixed";
++			regulator-name = "lcd-power";
++			regulator-min-microvolt = <3300000>;
++			regulator-max-microvolt = <3300000>;
++			enable-active-high;
++                        regulator-boot-on;
++			gpio = <&gpio0 11 GPIO_ACTIVE_HIGH>;
++		};
++	};
++
++};
++                        
++&pinctrl {
++
++	compatible = "marvell,dove-pinctrl";
++	reg = <0x0200 0x14>,
++	<0x0440 0x04>;
++	clocks = <&gate_clk 22>;
++
++	pinctrl-names = "default";
++
++	lcd_pwr: pmx-lcd-pwr {
++                marvell,pins = "mpp11";
++                marvell,function = "gpio";
++        };
++
++	pmx_pwr_off: pmx-pwr-off {
++		marvell,pins = "mpp8";
++		marvell,function = "gpio";
++	};
++
++	pmx_sdio0_gpio: pmx-sdio0-gpio {
++		marvell,pins = "mpp_sdio0";
++		marvell,function = "gpio";
++	};
++
++        pmx_audio_rst: pmx-audio-rst {
++                marvell,pins = "mpp55";
++                marvell,function = "gpio";
++        };
++
++	mcu_intrn: mcu_intrn {
++		marvell,pins = "mpp0";
++		marvell,function = "gpio";
++	};
++
++	i2s_codec_irq: i2s-codec-irq {
++		marvell,pins = "mpp1";
++		marvell,function = "gpio";
++	};
++
++	hub_resetn: hub_resetn {
++		marvell,pins = "mpp9";
++		marvell,function = "gpio";
++	};
++
++	ddr_term: ddr-term {
++		marvell,pins = "mpp16";
++		marvell,function = "gpio";
++	};
++
++};
++
++&uart0 {
++	status = "okay"; 
++};
++
++&uart1 {
++	status = "okay"; 
++};
++
++&sdio0 {
++        pinctrl-0 = <&pmx_sdio0_gpio>;
++        pinctrl-names = "default";
++        status = "okay";
++        gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
++	status = "okay"; 
++};
++
++&sdio1 {
++        status = "okay";
++};
++
++&sata0 {
++	status = "okay"; };
++
++&spi0 {
++	status = "okay";
++
++	/* spi0.0 */
++	spi-flash@0 {
++		compatible = "stt,sst25vf080b", "jedec,spi-nor";
++		spi-max-frequency = <16000000>;
++		reg = <0>;
++	};
++};
++
++&i2c0 {
++	status = "okay";
++
++		alc5621: alc5621@1a {
++			compatible = "realtek,alc5621";
++			reg = <0x1a>;
++			#sound-dai-cells = <0>;
++			add-ctrl = <0x3700>;
++			jack-det-ctrl = <0x4810>;
++		};
++};
++
++&pcie {
++	status = "okay";
++		
++	pcie0: pcie@1 {
++		status = "okay";
++	};
++		
++	pcie1: pcie@2 {
++		status = "okay";
++	};
++};
++
++&lcd1 {
++	pinctrl-0 = <&lcd_pwr>;
++	pinctrl-names = "default";
++	gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
++	status = "okay";
++};
++
++&lcd0 {
++	status = "okay";
++};
++
++&gpu {
++	status = "okay";
++};
++
++&audio0 {
++	status = "okay";
++        #sound-dai-cells = <1>;
++};
++
++&mdio {
++	status = "okay";
++	ethphy: ethernet-phy@1 {
++		reg = <1>;
++	};
++};
++
++&eth {
++	status = "okay";
++	ethernet-port@0 {
++		phy-handle = <&ethphy>;
++	};
++};
++
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/dove-wyse-t50.dts b/arch/arm/boot/dts/marvell/dove-wyse-t50.dts
+--- a/arch/arm/boot/dts/marvell/dove-wyse-t50.dts	1969-12-31 16:00:00.000000000 -0800
++++ b/arch/arm/boot/dts/marvell/dove-wyse-t50.dts	2026-08-21 11:11:17.779896336 -0700
+@@ -0,0 +1,96 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Device Tree file for Dell Wyse T50/T10
++ *
++ * Copyright (C) 2018-2023 
++ * bodhi <mibodhi@gmail.com>
++ * Koen
++ *
++ */
++
++/dts-v1/;
++#include <dt-bindings/gpio/gpio.h>
++#include "dove.dtsi"
++
++/ {
++	model = "Dell Wyse T50";
++	compatible = "wyse,t50", "marvell,dove-db", "marvell,dove";
++
++	memory {
++		device_type = "memory";
++		reg = <0x00000000 0x40000000>;
++	};
++
++	chosen {
++		bootargs = "console=ttyS0,115200n8 earlyprintk";
++	};
++
++	gpio-poweroff {
++		compatible = "gpio-poweroff";
++		pinctrl-0 = <&pmx_gpio_8>;
++		pinctrl-names = "default";
++		gpios = <&gpio0 8 GPIO_ACTIVE_LOW>;
++	};
++
++};
++
++&uart0 { status = "okay"; };
++&uart1 { status = "okay"; };
++&sdio0 { status = "okay"; };
++&sdio1 { status = "okay"; };
++&sata0 { status = "okay"; };
++
++&spi0 {
++	status = "okay";
++
++	/* spi0.0: Spansion s25fl064k  */
++	spi-flash@0 {
++		compatible = "spansion,s25fl064k", "st,mx25l3205d", "jedec,spi-nor";
++		spi-max-frequency = <16000000>;
++		reg = <0>;
++	};
++};
++
++&i2c0 {
++	  status = "okay";
++};
++
++&pcie {
++	status = "okay";
++		
++	pcie0: pcie@1 {
++		status = "okay";
++	};
++		
++	pcie1: pcie@2 {
++		status = "okay";
++	};
++};
++
++&lcd1 {
++	status = "okay";
++};
++
++&lcd0 {
++	status = "okay";
++};
++
++&gpu {
++	status = "okay";
++};
++
++
++&mdio {
++	status = "okay";
++	ethphy: ethernet-phy@1 {
++	        compatible = "marvell,88e1310";
++		reg = <1>;
++	};
++};
++
++&eth {
++	status = "okay";
++	ethernet-port@0 {
++		phy-handle = <&ethphy>;
++	};
++};
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/Makefile b/arch/arm/boot/dts/marvell/Makefile
+--- a/arch/arm/boot/dts/marvell/Makefile	2026-08-19 09:20:32.000000000 -0700
++++ b/arch/arm/boot/dts/marvell/Makefile	2026-08-21 11:11:17.779896336 -0700
+@@ -19,19 +19,26 @@
+ dtb-$(CONFIG_MACH_ARMADA_370) += \
+ 	armada-370-c200-v2.dtb \
+ 	armada-370-db.dtb \
++	armada-370-c200-v2.dtb \
+ 	armada-370-dlink-dns327l.dtb \
+ 	armada-370-mirabox.dtb \
+ 	armada-370-netgear-rn102.dtb \
+ 	armada-370-netgear-rn104.dtb \
+ 	armada-370-rd.dtb \
++	armada-370-rtnas-v3.dtb \
+ 	armada-370-seagate-nas-2bay.dtb \
+ 	armada-370-seagate-nas-4bay.dtb \
+ 	armada-370-seagate-personal-cloud.dtb \
+ 	armada-370-seagate-personal-cloud-2bay.dtb \
+-	armada-370-synology-ds213j.dtb
++	armada-370-shuttle-ks10.dtb \
++	armada-370-synology-ds213j.dtb \
++	armada-370-wdmc-mirror-gen1.dtb
+ dtb-$(CONFIG_MACH_ARMADA_375) += \
+-	armada-375-db.dtb
++	armada-375-db.dtb \
++	armada-375-synology-ds215j.dtb \
++	armada-375-wd-mycloud-gen2.dtb
+ dtb-$(CONFIG_MACH_ARMADA_38X) += \
++	armada-380-zyxel-nas326.dtb \
+ 	armada-381-netgear-gs110emx.dtb \
+ 	armada-382-rd-ac3x-48g4x2xl.dtb \
+ 	armada-385-atl-x530.dtb \
+@@ -44,14 +51,22 @@
+ 	armada-385-linksys-rango.dtb \
+ 	armada-385-linksys-shelby.dtb \
+ 	armada-385-synology-ds116.dtb \
+-	armada-385-turris-omnia.dtb \
++	armada-385-synology-ds216.dtb \
++	armada-385-synology-ds216j.dtb \
++	armada-385-synology-ds218j.dtb \
++	armada-385-synology-rs816.dtb \
++	armada-385-thecus-n2350.dtb \
++ 	armada-385-turris-omnia.dtb \
++	armada-385-wd-ex2100.dtb \
++	armada-385-wd-ex2-ultra.dtb \
+ 	armada-388-clearfog.dtb \
+ 	armada-388-clearfog-base.dtb \
+ 	armada-388-clearfog-pro.dtb \
+ 	armada-388-db.dtb \
+ 	armada-388-gp.dtb \
+ 	armada-388-helios4.dtb \
+-	armada-388-rd.dtb
++	armada-388-rd.dtb \
++	armada-388-wd-ex4100.dtb
+ dtb-$(CONFIG_MACH_ARMADA_39X) += \
+ 	armada-390-db.dtb \
+ 	armada-395-gp.dtb \
+@@ -73,14 +88,18 @@
+ 	armada-xp-matrix.dtb \
+ 	armada-xp-netgear-rn2120.dtb \
+ 	armada-xp-openblocks-ax3-4.dtb \
++	armada-xp-synology-ds214.dtb \
+ 	armada-xp-synology-ds414.dtb
+ dtb-$(CONFIG_MACH_DOVE) += \
++	dove-chip-lxd8941.dtb \
+ 	dove-cubox.dtb \
+ 	dove-cubox-es.dtb \
+ 	dove-d2plug.dtb \
+ 	dove-d3plug.dtb \
+ 	dove-dove-db.dtb \
+-	dove-sbc-a510.dtb
++	dove-hp-t5335z.dtb \
++	dove-sbc-a510.dtb \
++	dove-wyse-t50.dtb
+ dtb-$(CONFIG_MACH_KIRKWOOD) += \
+ 	kirkwood-4i-edge-200.dtb \
+ 	kirkwood-b3.dtb \
+diff -Naur --no-dereference a/arch/arm/boot/dts/marvell/mmp3-dell-ariel.dts b/arch/arm/boot/dts/marvell/mmp3-dell-ariel.dts
+--- a/arch/arm/boot/dts/marvell/mmp3-dell-ariel.dts	2026-08-19 09:20:32.000000000 -0700
++++ b/arch/arm/boot/dts/marvell/mmp3-dell-ariel.dts	2026-08-21 11:11:17.779896336 -0700
+@@ -47,8 +47,9 @@
+ 	status = "okay";
+ };
+ 
++/* This board uses the ds1338 RTC instead of the SoC RTC */
+ &rtc {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &usb_otg0 {
+@@ -71,7 +72,7 @@
+ 		mass-storage@1 {
+ 			compatible = "usb424,4040";
+ 			reg = <0x01>;
+-			status = "disabled";
++			status = "okay";
+ 		};
+ 	};
+ };
+diff -Naur --no-dereference a/drivers/ata/libata-core.c b/drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c	2026-08-19 09:20:32.000000000 -0700
++++ b/drivers/ata/libata-core.c	2026-08-21 11:11:17.789892731 -0700
+@@ -5052,7 +5052,7 @@
+ 	struct ata_eh_info *ehi = &dev->link->eh_info;
+ 
+ 	/* Trigger the LED (if available) */
+-	ledtrig_disk_activity(!!(qc->tf.flags & ATA_TFLAG_WRITE));
++ 	ledtrig_disk_activity(qc->ap->port_no, !!(qc->tf.flags & ATA_TFLAG_WRITE));
+ 
+ 	/*
+ 	 * In order to synchronize EH with the regular execution path, a qc that
+diff -Naur --no-dereference a/drivers/base/Kconfig b/drivers/base/Kconfig
+--- a/drivers/base/Kconfig	2026-08-19 09:20:32.000000000 -0700
++++ b/drivers/base/Kconfig	2026-08-21 11:11:17.789892731 -0700
+@@ -205,6 +205,7 @@
+ 
+ config GENERIC_CPU_VULNERABILITIES
+ 	bool
++        default y
+ 
+ config SOC_BUS
+ 	bool
+diff -Naur --no-dereference a/drivers/leds/trigger/ledtrig-disk.c b/drivers/leds/trigger/ledtrig-disk.c
+--- a/drivers/leds/trigger/ledtrig-disk.c	2026-08-19 09:20:32.000000000 -0700
++++ b/drivers/leds/trigger/ledtrig-disk.c	2026-08-21 11:11:17.789892731 -0700
+@@ -2,6 +2,7 @@
+ /*
+  * LED Disk Activity Trigger
+  *
++ * Copyright 2018 bodhi <mibodhi@gmail.com>
+  * Copyright 2006 Openedhand Ltd.
+  *
+  * Author: Richard Purdie <rpurdie@openedhand.com>
+@@ -16,16 +17,69 @@
+ DEFINE_LED_TRIGGER(ledtrig_disk);
+ DEFINE_LED_TRIGGER(ledtrig_disk_read);
+ DEFINE_LED_TRIGGER(ledtrig_disk_write);
++DEFINE_LED_TRIGGER(ledtrig_ide1);
++DEFINE_LED_TRIGGER(ledtrig_ide2);
++DEFINE_LED_TRIGGER(ledtrig_ide3);
++DEFINE_LED_TRIGGER(ledtrig_ide4);
+ 
+-void ledtrig_disk_activity(bool write)
++void ledtrig_disk_activity(int portno, bool write)
+ {
+-	led_trigger_blink_oneshot(ledtrig_disk, BLINK_DELAY, BLINK_DELAY, 0);
+-	if (write)
+-		led_trigger_blink_oneshot(ledtrig_disk_write,
+-					  BLINK_DELAY, BLINK_DELAY, 0);
+-	else
+-		led_trigger_blink_oneshot(ledtrig_disk_read,
+-					  BLINK_DELAY, BLINK_DELAY, 0);
++ 	switch (portno) {
++ 		case 0:
++			led_trigger_blink_oneshot(ledtrig_disk,
++						  BLINK_DELAY, BLINK_DELAY, 0);
++
++			if (write)
++				led_trigger_blink_oneshot(ledtrig_disk_write,
++					BLINK_DELAY, BLINK_DELAY, 0);
++			else
++				led_trigger_blink_oneshot(ledtrig_disk_read,
++					BLINK_DELAY, BLINK_DELAY, 0);
++
++ 		        led_trigger_blink_oneshot(ledtrig_ide1, BLINK_DELAY, BLINK_DELAY, 0);
++ 			break;
++         	case 1:
++			led_trigger_blink_oneshot(ledtrig_disk,
++						  BLINK_DELAY, BLINK_DELAY, 0);
++                        if (write)
++                                led_trigger_blink_oneshot(ledtrig_disk_write,
++                                        BLINK_DELAY, BLINK_DELAY, 0);
++                        else
++                                led_trigger_blink_oneshot(ledtrig_disk_read,
++                                        BLINK_DELAY, BLINK_DELAY, 0);
++
++ 			led_trigger_blink_oneshot(ledtrig_ide2, BLINK_DELAY, BLINK_DELAY, 0);
++ 			break;
++ 		case 2:
++			led_trigger_blink_oneshot(ledtrig_disk,
++						  BLINK_DELAY, BLINK_DELAY, 0);
++
++			if (write)
++				led_trigger_blink_oneshot(ledtrig_disk_write,
++					BLINK_DELAY, BLINK_DELAY, 0);
++			else
++				led_trigger_blink_oneshot(ledtrig_disk_read,
++					BLINK_DELAY, BLINK_DELAY, 0);
++
++ 		        led_trigger_blink_oneshot(ledtrig_ide3, BLINK_DELAY, BLINK_DELAY, 0);
++ 			break;
++ 		case 3:
++			led_trigger_blink_oneshot(ledtrig_disk,
++						  BLINK_DELAY, BLINK_DELAY, 0);
++
++			if (write)
++				led_trigger_blink_oneshot(ledtrig_disk_write,
++					BLINK_DELAY, BLINK_DELAY, 0);
++			else
++				led_trigger_blink_oneshot(ledtrig_disk_read,
++					BLINK_DELAY, BLINK_DELAY, 0);
++
++ 		        led_trigger_blink_oneshot(ledtrig_ide4, BLINK_DELAY, BLINK_DELAY, 0);
++ 			break;
++		default:
++ 			break;
++ 	}
++
+ }
+ EXPORT_SYMBOL(ledtrig_disk_activity);
+ 
+@@ -34,6 +88,10 @@
+ 	led_trigger_register_simple("disk-activity", &ledtrig_disk);
+ 	led_trigger_register_simple("disk-read", &ledtrig_disk_read);
+ 	led_trigger_register_simple("disk-write", &ledtrig_disk_write);
++ 	led_trigger_register_simple("ide-disk1", &ledtrig_ide1);
++ 	led_trigger_register_simple("ide-disk2", &ledtrig_ide2);
++ 	led_trigger_register_simple("ide-disk3", &ledtrig_ide3);
++ 	led_trigger_register_simple("ide-disk4", &ledtrig_ide4);
+ 
+ 	return 0;
+ }
+diff -Naur --no-dereference a/drivers/mtd/nand/raw/nand_macronix.c b/drivers/mtd/nand/raw/nand_macronix.c
+--- a/drivers/mtd/nand/raw/nand_macronix.c	2026-08-19 09:20:32.000000000 -0700
++++ b/drivers/mtd/nand/raw/nand_macronix.c	2026-08-21 11:11:17.789892731 -0700
+@@ -456,7 +456,8 @@
+ {
+ 	static const char * const supported_otp_models[] = {
+ 		"MX30LF1G18AC",
+-		"MX30LF2G18AC",
++		// Remove OTP support for MX30LF2G18AC to work around bug in nvmem core.c
++		// "MX30LF2G18AC",
+ 		"MX30LF4G18AC",
+ 	};
+ 	struct mtd_info *mtd;
+diff -Naur --no-dereference a/drivers/mtd/spi-nor/macronix.c b/drivers/mtd/spi-nor/macronix.c
+--- a/drivers/mtd/spi-nor/macronix.c	2026-08-19 09:20:32.000000000 -0700
++++ b/drivers/mtd/spi-nor/macronix.c	2026-08-21 11:11:17.789892731 -0700
+@@ -123,6 +123,7 @@
+ 		.id = SNOR_ID(0xc2, 0x20, 0x16),
+ 		.name = "mx25l3205d",
+ 		.size = SZ_4M,
++                .flags = SPI_NOR_HAS_LOCK,
+ 		.no_sfdp_flags = SECT_4K,
+ 	}, {
+ 		.id = SNOR_ID(0xc2, 0x20, 0x17),
+diff -Naur --no-dereference a/drivers/net/dsa/mv88e6xxx/chip.c b/drivers/net/dsa/mv88e6xxx/chip.c
+--- a/drivers/net/dsa/mv88e6xxx/chip.c	2026-08-19 09:20:32.000000000 -0700
++++ b/drivers/net/dsa/mv88e6xxx/chip.c	2026-08-21 11:11:17.799889125 -0700
+@@ -4988,6 +4988,7 @@
+ 	.ptp_ops = &mv88e6352_ptp_ops,
+ 	.phylink_get_caps = mv88e6390_phylink_get_caps,
+ 	.pcs_ops = &mv88e6390_pcs_ops,
++	.set_max_frame_size = mv88e6185_g1_set_max_frame_size,
+ };
+ 
+ static const struct mv88e6xxx_ops mv88e6240_ops = {
+diff -Naur --no-dereference a/drivers/power/reset/gpio-poweroff.c b/drivers/power/reset/gpio-poweroff.c
+--- a/drivers/power/reset/gpio-poweroff.c	2026-08-19 09:20:32.000000000 -0700
++++ b/drivers/power/reset/gpio-poweroff.c	2026-08-21 11:11:17.799889125 -0700
+@@ -42,7 +42,7 @@
+ 	gpiod_set_value_cansleep(gpio_poweroff->reset_gpio, 1);
+ 
+ 	/* give it some time */
+-	mdelay(gpio_poweroff->timeout_ms);
++	mdelay(10000); /* 10 seconds to be sure with some NAS */
+ 
+ 	/*
+ 	 * If code reaches this point, it means that gpio-poweroff has failed
+diff -Naur --no-dereference a/include/linux/leds.h b/include/linux/leds.h
+--- a/include/linux/leds.h	2026-08-19 09:20:32.000000000 -0700
++++ b/include/linux/leds.h	2026-08-21 11:11:17.799889125 -0700
+@@ -620,9 +620,9 @@
+ 
+ /* Trigger specific functions */
+ #ifdef CONFIG_LEDS_TRIGGER_DISK
+-void ledtrig_disk_activity(bool write);
++void ledtrig_disk_activity(int portno, bool write);
+ #else
+-static inline void ledtrig_disk_activity(bool write) {}
++static inline void ledtrig_disk_activity(int portno, bool write) {}
+ #endif
+ 
+ #ifdef CONFIG_LEDS_TRIGGER_MTD
