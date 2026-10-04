@@ -105,7 +105,9 @@ bodhi layout where practical:
 - Debian 13 `trixie`;
 - Kirkwood `armel` or MVEBU `armhf`;
 - sysvinit as `/sbin/init` provider;
-- standalone sysusers support for `udev` without making systemd PID 1;
+- `systemd` and `systemd-sysv` are excluded from the bootstrap package set;
+- `systemd-standalone-sysusers` satisfies packages such as `udev` that need a
+  sysusers implementation without installing the full systemd package;
 - `ifupdown` with DHCP on `eth0`;
 - MVEBU `rename /end0=eth0` rule;
 - `/etc/fstab` rooted at `LABEL=rootfs`;

@@ -123,6 +123,7 @@ if [[ -n "${NETWORK_RENAME_RULE:-}" ]]; then
 fi
 
 sysv_stanza="$(awk 'BEGIN{RS=""} /^Package: sysvinit-core\n/ {print; exit}' <<<"$status")"
+systemd_stanza="$(awk 'BEGIN{RS=""} /^Package: systemd\n/ {print; exit}' <<<"$status")"
 systemd_sysv_stanza="$(awk 'BEGIN{RS=""} /^Package: systemd-sysv\n/ {print; exit}' <<<"$status")"
 standalone_sysusers_stanza="$(awk 'BEGIN{RS=""} /^Package: systemd-standalone-sysusers\n/ {print; exit}' <<<"$status")"
 
@@ -132,6 +133,10 @@ if ! grep -q '^Status: install ok installed$' <<<"$sysv_stanza"; then
 fi
 if ! grep -q "^Architecture: $DEBIAN_ARCH$" <<<"$sysv_stanza"; then
   echo "ERROR: sysvinit-core architecture does not match $DEBIAN_ARCH." >&2
+  exit 7
+fi
+if grep -q '^Status: install ok installed$' <<<"$systemd_stanza"; then
+  echo "ERROR: systemd is installed in generated rootfs; expected the standalone sysusers provider." >&2
   exit 7
 fi
 if grep -q '^Status: install ok installed$' <<<"$systemd_sysv_stanza"; then

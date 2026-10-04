@@ -119,7 +119,7 @@ debootstrap \
   --foreign \
   --arch="$DEBIAN_ARCH" \
   --variant=minbase \
-  --exclude=systemd-sysv \
+  --exclude=systemd,systemd-sysv \
   --include="$INCLUDE_PACKAGES" \
   "$DEBIAN_SUITE" \
   "$ROOTFS_DIR" \
@@ -140,7 +140,14 @@ rm -f "$ROOTFS_DIR/etc/resolv.conf"
 cp /etc/resolv.conf "$ROOTFS_DIR/etc/resolv.conf"
 
 echo "==> Completing Debian bootstrap stage 2"
-chroot "$ROOTFS_DIR" /debootstrap/debootstrap --second-stage
+if ! chroot "$ROOTFS_DIR" /debootstrap/debootstrap --second-stage; then
+  echo "ERROR: Debian bootstrap stage 2 failed." >&2
+  if [[ -f "$ROOTFS_DIR/debootstrap/debootstrap.log" ]]; then
+    echo "==> Last 200 lines of debootstrap.log" >&2
+    tail -n 200 "$ROOTFS_DIR/debootstrap/debootstrap.log" >&2 || true
+  fi
+  exit 4
+fi
 
 cat > "$ROOTFS_DIR/etc/apt/sources.list" <<EOF_APT
 deb $DEBIAN_MIRROR $DEBIAN_SUITE main contrib non-free-firmware
