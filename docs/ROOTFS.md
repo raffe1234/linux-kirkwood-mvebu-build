@@ -2,12 +2,13 @@
 
 ## Scope
 
-The repository currently builds and verifies custom Linux kernels. It does not
-yet build a complete Debian rootfs.
+The repository builds and verifies custom Linux kernels and now has a separate
+Debian 13 base-rootfs generator. It does not yet produce a complete boot-ready
+rootfs or boot-media image.
 
-Rootfs work is intentionally a separate phase so that the verified kernel build
-pipeline remains stable. The first rootfs step is therefore reference and
-validation, not automated disk creation.
+Rootfs work is intentionally separated from the verified kernel build pipeline.
+The first stable rootfs step was read-only reference validation; the current
+development step builds and validates Debian userland without writing media.
 
 ## Known-good reference archives
 
@@ -64,13 +65,16 @@ For example, the Kirkwood 6.5.7 rootfs contains 105 DTBs in `/boot/dts`, while
 the verified 7.1.9 Kirkwood kernel build currently produces 107 DTBs. Those
 counts should not be compared as if they describe the same release.
 
-## Next rootfs phase
+## Debian 13 base-rootfs generator
 
-After the reference validator is stable, the next implementation step should be
-a Debian 13 rootfs generator, probably as a separate `scripts/build-rootfs.sh`.
-It should consume the already verified kernel artifacts instead of duplicating
-kernel build logic.
+The next phase is implemented by `scripts/build-rootfs.sh`. It creates a Debian
+13 base userland for Kirkwood (`armel`) or MVEBU (`armhf`) and validates the
+result with `scripts/validate-generated-rootfs.sh`.
 
-Keep media creation separate from rootfs generation. Any future command that
-partitions or formats removable media should require an explicit device and
-strong safety checks; it should not be part of the reference validator.
+This first generator intentionally does **not** install the project's custom
+kernel. Kernel integration remains the next independent step so userland and
+kernel failures can be isolated. See `docs/ROOTFS_BUILD.md`.
+
+Media creation remains separate from rootfs generation. Any future command that
+partitions or formats removable media must require an explicit device and strong
+safety checks.

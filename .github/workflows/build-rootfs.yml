@@ -1,0 +1,83 @@
+name: Build Debian 13 base rootfs
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Rootfs target platform
+        required: true
+        default: kirkwood
+        type: choice
+        options:
+          - kirkwood
+          - mvebu
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up ARM user-mode emulation
+        uses: docker/setup-qemu-action@v4
+        with:
+          platforms: arm
+
+      - name: Verify target architecture emulation
+        env:
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          set -euo pipefail
+          case "$PLATFORM" in
+            kirkwood)
+              docker_platform="linux/arm/v5"
+              expected_arch="armel"
+              ;;
+            mvebu)
+              docker_platform="linux/arm/v7"
+              expected_arch="armhf"
+              ;;
+            *)
+              echo "Unsupported platform: $PLATFORM" >&2
+              exit 2
+              ;;
+          esac
+          actual_arch="$(docker run --rm --platform "$docker_platform" debian:13 dpkg --print-architecture)"
+          test "$actual_arch" = "$expected_arch"
+          echo "QEMU verified: $docker_platform -> $actual_arch"
+
+      - name: Build and validate Debian 13 base rootfs
+        env:
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --platform linux/amd64 \
+            -e GITHUB_SHA="$GITHUB_SHA" \
+            -e PLATFORM="$PLATFORM" \
+            -v "$GITHUB_WORKSPACE:/src" \
+            -w /src \
+            debian:13 \
+            bash -euxo pipefail -c '
+              apt-get update
+              apt-get install -y --no-install-recommends \
+                arch-test \
+                bzip2 \
+                ca-certificates \
+                debootstrap \
+                git
+              ./scripts/build-rootfs.sh "$PLATFORM"
+            '
+
+      - name: Upload rootfs artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: debian-13-${{ inputs.platform }}-base-rootfs
+          path: dist/rootfs/${{ inputs.platform }}/debian-13/
+          if-no-files-found: error
+          retention-days: 14

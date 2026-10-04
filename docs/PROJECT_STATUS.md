@@ -37,7 +37,7 @@ Tag `v1.0` marks the verified dual-platform kernel-build baseline.
 - artifact `SHA256SUMS`.
 - QNAP Git/patch workflow.
 
-## Rootfs phase: reference and validation
+## Stable rootfs reference baseline: v1.1
 
 The first rootfs step is deliberately read-only. The repository records metadata
 for two known-good bodhi rootfs archives and provides `scripts/inspect-rootfs.sh`
@@ -55,6 +55,26 @@ The Kirkwood rootfs download may have `5.6.7` in its filename because of a
 confirmed publication typo; its recorded canonical name and internal kernel are
 6.5.7. See `docs/ROOTFS.md`.
 
+## Rootfs generator: current development
+
+A Debian 13 base-rootfs generator is now implemented for both platforms:
+
+- Kirkwood: Debian 13 `armel`;
+- MVEBU: Debian 13 `armhf`;
+- sysvinit, `LABEL=rootfs`, DHCP on `eth0`;
+- MVEBU keeps the known-good `rename /end0=eth0` rule;
+- generated package manifest, metadata and SHA256 sums;
+- automatic validation of generated tarballs;
+- manual GitHub Actions rootfs workflow with ARM QEMU emulation;
+- no kernel installation and no media writing yet.
+
+Debian 13 is the final Debian release for `armel`; the project therefore relies
+on its own third-party Kirkwood kernel rather than Debian's installer/kernel path.
+
+This generator is development state until both target builds pass the repository's
+GitHub Actions workflow. Do not tag this state as `v1.2` until those builds and
+their generated validation output have been reviewed.
+
 ## Current reference kernel
 
 ```text
@@ -63,10 +83,10 @@ Linux 7.1.9
 
 ## Next work
 
-1. Exercise the rootfs validator against the stored reference archives on the
-   NAS/build host.
-2. Design a Debian 13 rootfs generator as a separate script that consumes the
-   verified kernel artifacts.
+1. Exercise the Debian 13 base-rootfs generator on a suitable Debian 13 amd64
+   build host for both Kirkwood and MVEBU.
+2. Integrate the already verified custom kernel artifacts into a copy of the
+   generated rootfs and validate boot-file generation.
 3. Only after that, design an explicitly separate and safety-guarded media
    creation/boot-test step.
 

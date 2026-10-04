@@ -18,7 +18,8 @@ builds use their own `CONFIG_LOCALVERSION` suffix and Debian package identity.
 ## Current baseline
 
 Tag `v1.0` freezes the verified kernel-build baseline. Linux 7.1.9 has been
-successfully built through GitHub Actions for both platforms.
+successfully built through GitHub Actions for both platforms. Tag `v1.1` adds
+read-only validation of the known-good bodhi Debian 12 rootfs references.
 
 | Platform | Debian arch | Cross compiler | DTBs | Reference DTB |
 |---|---|---|---:|---|
@@ -32,9 +33,9 @@ Verified custom releases:
 7.1.9-mvebu-tld-1-raffe-1
 ```
 
-The next project phase is rootfs work. It starts with read-only validation of
-known-good bodhi Debian rootfs archives; automated rootfs generation comes
-later. See `docs/ROOTFS.md`.
+The current development phase adds a Debian 13 base-rootfs generator on top of
+the validated reference work. Kernel installation and boot-media creation remain
+separate later phases. See `docs/ROOTFS.md` and `docs/ROOTFS_BUILD.md`.
 
 ## Repository layout
 
@@ -43,8 +44,8 @@ later. See `docs/ROOTFS.md`.
 checksums/           upstream and kernel-build reference data
 configs/             bodhi-derived kernel configs
 patches/             bodhi-derived kernel patches
-rootfs/              rootfs reference metadata (not the rootfs archives)
-scripts/             kernel build and rootfs inspection scripts
+rootfs/              rootfs reference metadata and build definitions
+scripts/             kernel build, rootfs build and validation scripts
 docs/                build, status and workflow documentation
 ```
 
@@ -69,9 +70,9 @@ scripts/build-mvebu.sh
 This keeps the GitHub Actions workflows and manual commands backward-compatible
 while avoiding duplicate build logic.
 
-## GitHub Actions
+## Kernel GitHub Actions
 
-Two manually triggered workflows are available:
+Two manually triggered kernel workflows are available:
 
 ```text
 Build Kirkwood 7.1.9
@@ -129,6 +130,21 @@ them to a disk:
 The validator is read-only. It verifies the known archive SHA256 and expected
 boot/rootfs structure. It never partitions or formats media.
 
+## Debian 13 base rootfs generation
+
+A manually triggered GitHub Actions workflow, **Build Debian 13 base rootfs**,
+can build either platform using QEMU user-mode emulation. The same builder can
+also run on a suitable Debian 13 amd64 host:
+
+```bash
+sudo ./scripts/build-rootfs.sh kirkwood
+sudo ./scripts/build-rootfs.sh mvebu
+```
+
+The result is a validated **base userland** tarball under `dist/rootfs/`. It does
+not yet contain the custom kernel and is not boot media. See
+`docs/ROOTFS_BUILD.md`.
+
 ## Adding another kernel version
 
 See `docs/ADDING_KERNEL_VERSION.md`.
@@ -142,6 +158,7 @@ checked against the appropriate reference.
 - `docs/BUILD_KIRKWOOD.md`
 - `docs/BUILD_MVEBU.md`
 - `docs/ROOTFS.md`
+- `docs/ROOTFS_BUILD.md`
 - `docs/ADDING_KERNEL_VERSION.md`
 - `docs/NAS_GIT_WORKFLOW.md`
 - `docs/PROJECT_STATUS.md`
