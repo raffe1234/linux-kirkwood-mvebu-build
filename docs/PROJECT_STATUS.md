@@ -71,9 +71,15 @@ A Debian 13 base-rootfs generator is now implemented for both platforms:
 Debian 13 is the final Debian release for `armel`; the project therefore relies
 on its own third-party Kirkwood kernel rather than Debian's installer/kernel path.
 
-This generator is development state until both target builds pass the repository's
-GitHub Actions workflow. Do not tag this state as `v1.2` until those builds and
-their generated validation output have been reviewed.
+Validation status as of 2026-10-04:
+
+- Kirkwood (`armel`): **passed** the GitHub Actions rootfs workflow after the
+  minbase/sysvinit bootstrap fixes;
+- MVEBU (`armhf`): **pending**.
+
+The generator remains development state until the MVEBU target also passes and
+its generated validation output has been reviewed. Do not tag this state as
+`v1.2` before then.
 
 ## Current reference kernel
 
@@ -83,11 +89,13 @@ Linux 7.1.9
 
 ## Next work
 
-1. Exercise the Debian 13 base-rootfs generator on a suitable Debian 13 amd64
-   build host for both Kirkwood and MVEBU.
-2. Integrate the already verified custom kernel artifacts into a copy of the
+1. Run the Debian 13 base-rootfs workflow for MVEBU and review its generated
+   validation output.
+2. If MVEBU also passes, update the status documentation and tag the verified
+   dual-platform rootfs-builder baseline as `v1.2`.
+3. Integrate the already verified custom kernel artifacts into a copy of the
    generated rootfs and validate boot-file generation.
-3. Only after that, design an explicitly separate and safety-guarded media
+4. Only after that, design an explicitly separate and safety-guarded media
    creation/boot-test step.
 
 Possible later work:

@@ -73,7 +73,9 @@ result with `scripts/validate-generated-rootfs.sh`.
 
 This first generator intentionally does **not** install the project's custom
 kernel. Kernel integration remains the next independent step so userland and
-kernel failures can be isolated. See `docs/ROOTFS_BUILD.md`.
+kernel failures can be isolated. The Kirkwood (`armel`) GitHub Actions build has
+passed; MVEBU (`armhf`) validation is still pending before the rootfs-builder
+baseline is tagged `v1.2`. See `docs/ROOTFS_BUILD.md`.
 
 Media creation remains separate from rootfs generation. Any future command that
 partitions or formats removable media must require an explicit device and strong

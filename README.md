@@ -34,13 +34,15 @@ Verified custom releases:
 ```
 
 The current development phase adds a Debian 13 base-rootfs generator on top of
-the validated reference work. Kernel installation and boot-media creation remain
-separate later phases. See `docs/ROOTFS.md` and `docs/ROOTFS_BUILD.md`.
+the validated reference work. The Kirkwood (`armel`) rootfs build has passed the
+GitHub Actions workflow; MVEBU (`armhf`) validation is still pending. Kernel
+installation and boot-media creation remain separate later phases. See
+`docs/ROOTFS.md` and `docs/ROOTFS_BUILD.md`.
 
 ## Repository layout
 
 ```text
-.github/workflows/   GitHub Actions kernel builds
+.github/workflows/   GitHub Actions kernel and rootfs builds
 checksums/           upstream and kernel-build reference data
 configs/             bodhi-derived kernel configs
 patches/             bodhi-derived kernel patches
@@ -142,8 +144,9 @@ sudo ./scripts/build-rootfs.sh mvebu
 ```
 
 The result is a validated **base userland** tarball under `dist/rootfs/`. It does
-not yet contain the custom kernel and is not boot media. See
-`docs/ROOTFS_BUILD.md`.
+not yet contain the custom kernel and is not boot media. Kirkwood has passed this
+workflow; MVEBU remains to be validated before the generator is tagged `v1.2`.
+See `docs/ROOTFS_BUILD.md`.
 
 ## Adding another kernel version
 

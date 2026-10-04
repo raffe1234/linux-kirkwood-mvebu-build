@@ -40,6 +40,13 @@ output as an Actions artifact.
 The workflow is manual (`workflow_dispatch`); pushing a commit does not start a
 rootfs build automatically.
 
+### Current validation status
+
+As of 2026-10-04, the Kirkwood (`armel`) target has completed the full workflow
+successfully, including generated-rootfs validation. MVEBU (`armhf`) has not yet
+been run through the final validated workflow. The `v1.2` tag is therefore held
+until MVEBU also passes and its output has been reviewed.
+
 ## Local build host
 
 A Debian 13 amd64 machine or VM can run the same builder. Install:
@@ -111,7 +118,8 @@ bodhi layout where practical:
 - `systemd-standalone-sysusers` is installed immediately after bootstrap and
   before packages such as `cron` and `udev`, so their sysusers dependency is
   satisfied without pulling in the full systemd package;
-- `ifupdown` with DHCP on `eth0`;
+- `ifupdown` with DHCP on `eth0`; the builder creates `/etc/network` explicitly
+  because a fresh `minbase` rootfs does not provide that directory yet;
 - MVEBU `rename /end0=eth0` rule;
 - `/etc/fstab` rooted at `LABEL=rootfs`;
 - SSH server and common administration/network utilities;
