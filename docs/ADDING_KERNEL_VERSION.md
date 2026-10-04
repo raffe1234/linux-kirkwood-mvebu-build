@@ -2,6 +2,8 @@
 
 The build engine accepts a kernel version, but a new version must not be treated as verified until matching reference material has been checked.
 
+This procedure is independent of the rootfs reference/generation work in `docs/ROOTFS.md`; updating a rootfs does not automatically verify a new kernel, and vice versa.
+
 For a version `X.Y.Z`:
 
 ## 1. Add the upstream checksum

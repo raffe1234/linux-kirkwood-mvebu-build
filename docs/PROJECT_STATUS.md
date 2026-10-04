@@ -1,6 +1,8 @@
 # Project status
 
-## Verified
+## Stable baseline: v1.0
+
+Tag `v1.0` marks the verified dual-platform kernel-build baseline.
 
 ### Kirkwood 7.1.9
 
@@ -22,7 +24,7 @@
 - Debian image and headers packages built successfully.
 - release artifact verified.
 
-## Implemented
+## Implemented kernel infrastructure
 
 - Kirkwood GitHub Actions workflow.
 - MVEBU GitHub Actions workflow.
@@ -33,7 +35,25 @@
 - reference DTB checks.
 - Git commit recorded in build metadata.
 - artifact `SHA256SUMS`.
-- short QNAP Git workflow.
+- QNAP Git/patch workflow.
+
+## Rootfs phase: reference and validation
+
+The first rootfs step is deliberately read-only. The repository records metadata
+for two known-good bodhi rootfs archives and provides `scripts/inspect-rootfs.sh`
+to verify them.
+
+| Platform | Debian | Architecture | Rootfs kernel | `/boot/dts` |
+|---|---|---|---|---:|
+| Kirkwood | 12.2 | armel | `6.5.7-kirkwood-tld-1` | 105 |
+| MVEBU | 12.4 | armhf | `6.6.2-mvebu-tld-1` | 82 |
+
+These are **rootfs references**, not the current kernel-build version. The
+verified project kernel remains Linux 7.1.9.
+
+The Kirkwood rootfs download may have `5.6.7` in its filename because of a
+confirmed publication typo; its recorded canonical name and internal kernel are
+6.5.7. See `docs/ROOTFS.md`.
 
 ## Current reference kernel
 
@@ -41,11 +61,20 @@
 Linux 7.1.9
 ```
 
-## Possible next work
+## Next work
 
-- verify and add a newer kernel version.
-- optional GitHub Releases.
+1. Exercise the rootfs validator against the stored reference archives on the
+   NAS/build host.
+2. Design a Debian 13 rootfs generator as a separate script that consumes the
+   verified kernel artifacts.
+3. Only after that, design an explicitly separate and safety-guarded media
+   creation/boot-test step.
+
+Possible later work:
+
+- verify and add a newer kernel version;
+- optional GitHub Releases;
 - optional Actions matrix workflow.
-- rootfs automation.
 
-New kernel versions must be verified independently before being marked known-good.
+New kernel versions and newly generated rootfs images must each be verified
+independently before being marked known-good.

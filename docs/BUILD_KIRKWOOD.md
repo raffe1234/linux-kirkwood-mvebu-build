@@ -2,6 +2,8 @@
 
 The Kirkwood 7.1.9 path has been successfully built and verified through GitHub Actions. It uses the common build engine through `scripts/build-kirkwood.sh`.
 
+This guide covers the **kernel build only**. Rootfs reference validation and future rootfs work are documented in `docs/ROOTFS.md`.
+
 ## 1. Required repo files
 
 Add the two saved bodhi reference files:
