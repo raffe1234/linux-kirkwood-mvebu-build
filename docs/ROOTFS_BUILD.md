@@ -105,9 +105,12 @@ bodhi layout where practical:
 - Debian 13 `trixie`;
 - Kirkwood `armel` or MVEBU `armhf`;
 - sysvinit as `/sbin/init` provider;
+- the `debootstrap --variant=minbase` stage contains only the Debian minimal
+  base; optional target packages are deliberately installed afterwards;
 - `systemd` and `systemd-sysv` are excluded from the bootstrap package set;
-- `systemd-standalone-sysusers` satisfies packages such as `udev` that need a
-  sysusers implementation without installing the full systemd package;
+- `systemd-standalone-sysusers` is installed immediately after bootstrap and
+  before packages such as `cron` and `udev`, so their sysusers dependency is
+  satisfied without pulling in the full systemd package;
 - `ifupdown` with DHCP on `eth0`;
 - MVEBU `rename /end0=eth0` rule;
 - `/etc/fstab` rooted at `LABEL=rootfs`;

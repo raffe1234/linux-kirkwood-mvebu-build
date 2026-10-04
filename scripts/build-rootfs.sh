@@ -77,37 +77,6 @@ METADATA_FILE="$OUTPUT_DIR/ROOTFS-METADATA.txt"
 rm -rf "$WORK_ROOT" "$OUTPUT_DIR"
 mkdir -p "$ROOTFS_DIR" "$OUTPUT_DIR"
 
-BASE_PACKAGES=(
-  ca-certificates
-  cron
-  e2fsprogs
-  ethtool
-  ifupdown
-  initramfs-tools
-  iproute2
-  iputils-ping
-  isc-dhcp-client
-  kmod
-  locales
-  logrotate
-  net-tools
-  netbase
-  openssh-server
-  orphan-sysvinit-scripts
-  procps
-  rsync
-  rsyslog
-  sysv-rc
-  sysvinit-core
-  sysvinit-utils
-  systemd-standalone-sysusers
-  tzdata
-  u-boot-tools
-  udev
-  wget
-)
-INCLUDE_PACKAGES="$(IFS=,; echo "${BASE_PACKAGES[*]}")"
-
 export DEBIAN_FRONTEND=noninteractive
 
 echo "==> Bootstrapping Debian $DEBIAN_MAJOR ($DEBIAN_SUITE) stage 1"
@@ -120,10 +89,19 @@ debootstrap \
   --arch="$DEBIAN_ARCH" \
   --variant=minbase \
   --exclude=systemd,systemd-sysv \
-  --include="$INCLUDE_PACKAGES" \
   "$DEBIAN_SUITE" \
   "$ROOTFS_DIR" \
   "$DEBIAN_MIRROR"
+
+# The minimal bootstrap should not select the full systemd package. Fail before
+# stage 2 with a focused diagnostic if Debian package metadata ever changes.
+if grep -Eq '(^|[[:space:]])systemd([[:space:]]|$)' \
+    "$ROOTFS_DIR/debootstrap/required" "$ROOTFS_DIR/debootstrap/base"; then
+  echo "ERROR: systemd was selected during the minimal debootstrap stage." >&2
+  echo "required=$(cat "$ROOTFS_DIR/debootstrap/required")" >&2
+  echo "base=$(cat "$ROOTFS_DIR/debootstrap/base")" >&2
+  exit 4
+fi
 
 # Prevent package maintainer scripts from attempting to start daemons while the
 # rootfs is being configured inside the build chroot.
@@ -196,9 +174,15 @@ chroot "$ROOTFS_DIR" /bin/bash -c '
   set -e
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
+
+  # The debootstrap dependency resolver chooses the first alternative for
+  # dependencies such as "systemd | systemd-standalone-sysusers". Install
+  # the non-systemd provider first so apt sees those dependencies as already
+  # satisfied when cron and udev are installed below.
+  apt-get install -y --no-install-recommends systemd-standalone-sysusers
+
   apt-get install -y --no-install-recommends \
     sysvinit-core sysvinit-utils sysv-rc orphan-sysvinit-scripts \
-    systemd-standalone-sysusers \
     ca-certificates cron e2fsprogs ethtool ifupdown initramfs-tools iproute2 \
     iputils-ping isc-dhcp-client kmod locales logrotate net-tools netbase \
     openssh-server procps rsync rsyslog tzdata u-boot-tools udev wget
